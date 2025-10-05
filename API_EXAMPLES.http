@@ -1,0 +1,337 @@
+### Tech Challenge - API Examples
+### Use estas requisições com REST Client (VS Code) ou similar
+
+### Variáveis
+@baseUrl = http://localhost:8080/api
+@auth = admin:admin
+
+### ============================================
+### CLIENTES
+### ============================================
+
+### 1. Criar Cliente
+POST {{baseUrl}}/clientes
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "João Silva",
+  "cpfCnpj": "12345678901",
+  "contato": "joao.silva@email.com"
+}
+
+### 2. Criar Cliente com CNPJ
+POST {{baseUrl}}/clientes
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "Empresa XYZ Ltda",
+  "cpfCnpj": "12345678000199",
+  "contato": "(11) 98765-4321"
+}
+
+### 3. Listar Todos os Clientes
+GET {{baseUrl}}/clientes
+Authorization: Basic {{auth}}
+
+### 4. Buscar Cliente por ID
+GET {{baseUrl}}/clientes/1
+Authorization: Basic {{auth}}
+
+### 5. Atualizar Cliente
+PUT {{baseUrl}}/clientes/1
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "João Silva Atualizado",
+  "cpfCnpj": "12345678901",
+  "contato": "joao.novo@email.com"
+}
+
+### 6. Deletar Cliente
+DELETE {{baseUrl}}/clientes/1
+Authorization: Basic {{auth}}
+
+### ============================================
+### VEÍCULOS
+### ============================================
+
+### 1. Criar Veículo (Placa Antiga)
+POST {{baseUrl}}/veiculos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "placa": "ABC1234",
+  "marca": "Toyota",
+  "modelo": "Corolla",
+  "ano": 2020,
+  "clienteId": 1
+}
+
+### 2. Criar Veículo (Placa Mercosul)
+POST {{baseUrl}}/veiculos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "placa": "XYZ1A23",
+  "marca": "Honda",
+  "modelo": "Civic",
+  "ano": 2023,
+  "clienteId": 1
+}
+
+### 3. Listar Todos os Veículos
+GET {{baseUrl}}/veiculos
+Authorization: Basic {{auth}}
+
+### 4. Listar Veículos por Cliente
+GET {{baseUrl}}/veiculos?clienteId=1
+Authorization: Basic {{auth}}
+
+### 5. Buscar Veículo por ID
+GET {{baseUrl}}/veiculos/1
+Authorization: Basic {{auth}}
+
+### 6. Atualizar Veículo
+PUT {{baseUrl}}/veiculos/1
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "placa": "ABC1234",
+  "marca": "Toyota",
+  "modelo": "Corolla XEI",
+  "ano": 2020,
+  "clienteId": 1
+}
+
+### 7. Deletar Veículo
+DELETE {{baseUrl}}/veiculos/1
+Authorization: Basic {{auth}}
+
+### ============================================
+### PEÇAS E INSUMOS
+### ============================================
+
+### 1. Criar Peça/Insumo
+POST {{baseUrl}}/pecas-insumos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "Filtro de Óleo",
+  "descricao": "Filtro de óleo para motor 1.8",
+  "preco": 45.90,
+  "quantidadeEstoque": 100
+}
+
+### 2. Criar Outra Peça
+POST {{baseUrl}}/pecas-insumos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "Pastilha de Freio",
+  "descricao": "Pastilha de freio dianteira",
+  "preco": 120.00,
+  "quantidadeEstoque": 50
+}
+
+### 3. Listar Todas as Peças/Insumos
+GET {{baseUrl}}/pecas-insumos
+Authorization: Basic {{auth}}
+
+### 4. Buscar Peça/Insumo por ID
+GET {{baseUrl}}/pecas-insumos/1
+Authorization: Basic {{auth}}
+
+### 5. Atualizar Peça/Insumo
+PUT {{baseUrl}}/pecas-insumos/1
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "Filtro de Óleo Premium",
+  "descricao": "Filtro de óleo sintético para motor 1.8",
+  "preco": 55.90,
+  "quantidadeEstoque": 100
+}
+
+### 6. Adicionar ao Estoque
+PATCH {{baseUrl}}/pecas-insumos/1/estoque?quantidadeAjuste=50
+Authorization: Basic {{auth}}
+
+### 7. Remover do Estoque
+PATCH {{baseUrl}}/pecas-insumos/1/estoque?quantidadeAjuste=-10
+Authorization: Basic {{auth}}
+
+### 8. Deletar Peça/Insumo
+DELETE {{baseUrl}}/pecas-insumos/1
+Authorization: Basic {{auth}}
+
+### ============================================
+### SERVIÇOS
+### ============================================
+
+### 1. Criar Serviço
+POST {{baseUrl}}/servicos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "descricao": "Troca de óleo e filtro",
+  "preco": 150.00
+}
+
+### 2. Criar Outro Serviço
+POST {{baseUrl}}/servicos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "descricao": "Alinhamento e balanceamento",
+  "preco": 200.00
+}
+
+### 3. Listar Todos os Serviços
+GET {{baseUrl}}/servicos
+Authorization: Basic {{auth}}
+
+### 4. Buscar Serviço por ID
+GET {{baseUrl}}/servicos/1
+Authorization: Basic {{auth}}
+
+### 5. Atualizar Serviço
+PUT {{baseUrl}}/servicos/1
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "descricao": "Troca de óleo, filtro e revisão completa",
+  "preco": 180.00
+}
+
+### 6. Deletar Serviço
+DELETE {{baseUrl}}/servicos/1
+Authorization: Basic {{auth}}
+
+### ============================================
+### TESTES DE VALIDAÇÃO (Devem retornar erro)
+### ============================================
+
+### Cliente com CPF inválido (menos de 11 dígitos)
+POST {{baseUrl}}/clientes
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "Teste",
+  "cpfCnpj": "123456789",
+  "contato": "teste@email.com"
+}
+
+### Veículo com placa inválida
+POST {{baseUrl}}/veiculos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "placa": "INVALID",
+  "marca": "Toyota",
+  "modelo": "Corolla",
+  "ano": 2020,
+  "clienteId": 1
+}
+
+### Peça com preço negativo
+POST {{baseUrl}}/pecas-insumos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "Teste",
+  "descricao": "Teste",
+  "preco": -10.00,
+  "quantidadeEstoque": 10
+}
+
+### Serviço com descrição curta (menos de 5 caracteres)
+POST {{baseUrl}}/servicos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "descricao": "Test",
+  "preco": 100.00
+}
+
+### ============================================
+### CENÁRIO COMPLETO DE TESTE
+### ============================================
+
+### 1. Criar Cliente
+POST {{baseUrl}}/clientes
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "Maria Santos",
+  "cpfCnpj": "98765432100",
+  "contato": "maria.santos@email.com"
+}
+
+### 2. Criar Veículo para o Cliente (use o ID retornado acima)
+POST {{baseUrl}}/veiculos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "placa": "DEF5678",
+  "marca": "Volkswagen",
+  "modelo": "Gol",
+  "ano": 2021,
+  "clienteId": 1
+}
+
+### 3. Criar Peça
+POST {{baseUrl}}/pecas-insumos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "nome": "Vela de Ignição",
+  "descricao": "Vela de ignição NGK",
+  "preco": 25.00,
+  "quantidadeEstoque": 200
+}
+
+### 4. Criar Serviço
+POST {{baseUrl}}/servicos
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "descricao": "Troca de velas de ignição",
+  "preco": 80.00
+}
+
+### 5. Consultar todos os dados criados
+GET {{baseUrl}}/clientes
+Authorization: Basic {{auth}}
+
+###
+GET {{baseUrl}}/veiculos
+Authorization: Basic {{auth}}
+
+###
+GET {{baseUrl}}/pecas-insumos
+Authorization: Basic {{auth}}
+
+###
+GET {{baseUrl}}/servicos
+Authorization: Basic {{auth}}
+

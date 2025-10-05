@@ -1,5 +1,6 @@
 package com.techchallenge.domain.repository;
 
+import com.techchallenge.domain.model.Cliente;
 import com.techchallenge.domain.model.Veiculo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -27,6 +28,13 @@ public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
      * @return Lista de veículos do cliente
      */
     List<Veiculo> findByClienteId(Long clienteId);
+
+    /**
+     * Busca todos os veículos de um cliente específico.
+     * @param cliente Cliente
+     * @return Lista de veículos do cliente
+     */
+    List<Veiculo> findByCliente(Cliente cliente);
 
     /**
      * Verifica se existe um veículo com a placa informada.
