@@ -270,6 +270,185 @@ Content-Type: application/json
 }
 
 ### ============================================
+### ORDENS DE SERVIÇO
+### ============================================
+
+### 1. Criar Ordem de Serviço (Cenário Completo)
+# Primeiro certifique-se de ter:
+# - Cliente com CPF 12345678901 (ID 1)
+# - Serviço com ID 1 (ex: Troca de óleo)
+# - Peça com ID 1 com estoque suficiente (ex: Filtro de Óleo)
+POST {{baseUrl}}/ordens-servico
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "cpfCnpjCliente": "12345678901",
+  "veiculo": {
+    "placa": "ABC1234",
+    "marca": "Toyota",
+    "modelo": "Corolla",
+    "ano": 2020
+  },
+  "servicos": [
+    {
+      "servicoId": 1,
+      "quantidade": 1
+    }
+  ],
+  "pecas": [
+    {
+      "pecaInsumoId": 1,
+      "quantidade": 2
+    }
+  ],
+  "observacoes": "Cliente solicitou revisão completa do veículo"
+}
+
+### 2. Criar OS com Veículo Já Cadastrado
+# Se o veículo já existe, marca/modelo/ano são opcionais
+POST {{baseUrl}}/ordens-servico
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "cpfCnpjCliente": "12345678901",
+  "veiculo": {
+    "placa": "ABC1234"
+  },
+  "servicos": [
+    {
+      "servicoId": 1,
+      "quantidade": 1
+    }
+  ],
+  "pecas": [],
+  "observacoes": "Serviço rápido sem troca de peças"
+}
+
+### 3. Criar OS com Múltiplos Serviços e Peças
+POST {{baseUrl}}/ordens-servico
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "cpfCnpjCliente": "12345678901",
+  "veiculo": {
+    "placa": "XYZ5678",
+    "marca": "Honda",
+    "modelo": "Civic",
+    "ano": 2023
+  },
+  "servicos": [
+    {
+      "servicoId": 1,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 2,
+      "quantidade": 1
+    }
+  ],
+  "pecas": [
+    {
+      "pecaInsumoId": 1,
+      "quantidade": 1
+    },
+    {
+      "pecaInsumoId": 2,
+      "quantidade": 4
+    }
+  ],
+  "observacoes": "Cliente relatou barulho no freio"
+}
+
+### 4. Buscar OS por ID
+GET {{baseUrl}}/ordens-servico/1
+Authorization: Basic {{auth}}
+
+### 5. Listar Todas as OSs
+GET {{baseUrl}}/ordens-servico
+Authorization: Basic {{auth}}
+
+### 6. Listar OSs Aguardando Aprovação
+GET {{baseUrl}}/ordens-servico?status=AGUARDANDO_APROVACAO
+Authorization: Basic {{auth}}
+
+### 7. Listar OSs Em Execução
+GET {{baseUrl}}/ordens-servico?status=EM_EXECUCAO
+Authorization: Basic {{auth}}
+
+### 8. Listar OSs de um Cliente
+GET {{baseUrl}}/ordens-servico?clienteId=1
+Authorization: Basic {{auth}}
+
+### ============================================
+### TESTES DE ERRO - ORDEM DE SERVIÇO
+### ============================================
+
+### Cliente não cadastrado (deve retornar 404)
+POST {{baseUrl}}/ordens-servico
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "cpfCnpjCliente": "99999999999",
+  "veiculo": {
+    "placa": "ABC1234"
+  },
+  "servicos": [
+    {
+      "servicoId": 1,
+      "quantidade": 1
+    }
+  ],
+  "pecas": []
+}
+
+### Estoque insuficiente (deve retornar 400 com detalhes)
+POST {{baseUrl}}/ordens-servico
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "cpfCnpjCliente": "12345678901",
+  "veiculo": {
+    "placa": "ABC1234"
+  },
+  "servicos": [
+    {
+      "servicoId": 1,
+      "quantidade": 1
+    }
+  ],
+  "pecas": [
+    {
+      "pecaInsumoId": 1,
+      "quantidade": 9999
+    }
+  ]
+}
+
+### Veículo novo sem dados completos (deve retornar 400)
+POST {{baseUrl}}/ordens-servico
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "cpfCnpjCliente": "12345678901",
+  "veiculo": {
+    "placa": "NEW1234"
+  },
+  "servicos": [
+    {
+      "servicoId": 1,
+      "quantidade": 1
+    }
+  ],
+  "pecas": []
+}
+
+### ============================================
 ### CENÁRIO COMPLETO DE TESTE
 ### ============================================
 

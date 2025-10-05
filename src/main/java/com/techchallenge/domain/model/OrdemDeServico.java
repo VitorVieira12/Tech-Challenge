@@ -50,28 +50,22 @@ public class OrdemDeServico {
     private Veiculo veiculo;
 
     /**
-     * Relacionamento Many-to-Many: Uma OS pode ter vários serviços,
-     * e um serviço pode estar em várias OSs.
+     * Itens de serviço da OS (com quantidade e preço histórico).
      */
-    @ManyToMany
-    @JoinTable(
-        name = "ordem_servico_servicos",
-        joinColumns = @JoinColumn(name = "ordem_servico_id"),
-        inverseJoinColumns = @JoinColumn(name = "servico_id")
-    )
-    private List<Servico> servicos = new ArrayList<>();
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrdemServicoItem> itensServico = new ArrayList<>();
 
     /**
-     * Relacionamento Many-to-Many: Uma OS pode necessitar de várias peças,
-     * e uma peça pode ser usada em várias OSs.
+     * Peças/insumos da OS (com quantidade e preço histórico).
      */
-    @ManyToMany
-    @JoinTable(
-        name = "ordem_servico_pecas",
-        joinColumns = @JoinColumn(name = "ordem_servico_id"),
-        inverseJoinColumns = @JoinColumn(name = "peca_insumo_id")
-    )
-    private List<PecaInsumo> pecasInsumos = new ArrayList<>();
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrdemServicoPeca> itensPeca = new ArrayList<>();
+
+    /**
+     * Observações adicionais sobre a OS.
+     */
+    @Column(length = 1000)
+    private String observacoes;
 
     /**
      * Método auxiliar executado antes de persistir a entidade.
@@ -85,6 +79,22 @@ public class OrdemDeServico {
         if (status == null) {
             status = StatusOrdemServico.RECEBIDA;
         }
+    }
+
+    /**
+     * Método auxiliar para adicionar um item de serviço.
+     */
+    public void adicionarItemServico(OrdemServicoItem item) {
+        itensServico.add(item);
+        item.setOrdemServico(this);
+    }
+
+    /**
+     * Método auxiliar para adicionar um item de peça.
+     */
+    public void adicionarItemPeca(OrdemServicoPeca item) {
+        itensPeca.add(item);
+        item.setOrdemServico(this);
     }
 }
 

@@ -8,6 +8,13 @@ Sistema de gerenciamento de oficina mecânica desenvolvido com Spring Boot 3.5.6
 - ✅ **Gestão de Veículos**: Cadastro com validação de placa brasileira (formato antigo e Mercosul)
 - ✅ **Gestão de Peças e Insumos**: Controle de estoque e preços
 - ✅ **Gestão de Serviços**: Catálogo de serviços oferecidos
+- ✅ **Criação de Ordem de Serviço**: Fluxo completo automatizado
+  - Identificação do cliente por CPF/CNPJ
+  - Cadastro automático de veículo (se necessário)
+  - Validação de estoque de peças
+  - Geração automática de orçamento
+  - Controle de status da OS
+  - Baixa automática no estoque
 - ✅ **Validações Robustas**: Validação de dados sensíveis (CPF/CNPJ, placas)
 - ✅ **Tratamento de Exceções**: Respostas de erro padronizadas
 - ✅ **API RESTful**: Seguindo convenções REST
@@ -93,6 +100,7 @@ Consulte o arquivo [API_DOCUMENTATION.md](API_DOCUMENTATION.md) para detalhes co
 - **Veículos**: `/api/veiculos`
 - **Peças/Insumos**: `/api/pecas-insumos`
 - **Serviços**: `/api/servicos`
+- **Ordens de Serviço**: `/api/ordens-servico`
 
 ### Exemplo de Requisição
 
@@ -169,6 +177,55 @@ src/main/java/com/techchallenge/
 ### Serviço
 - Descrição: 5-200 caracteres
 - Preço: > 0, máx 8 dígitos inteiros e 2 decimais
+
+## 🚀 Fluxo Principal: Criação de Ordem de Serviço
+
+O sistema permite criar uma OS completa com um único endpoint:
+
+```bash
+# 1. Primeiro, cadastre um cliente
+curl -X POST http://localhost:8080/api/clientes \
+  -u admin:admin \
+  -H "Content-Type: application/json" \
+  -d '{"nome": "João Silva", "cpfCnpj": "12345678901", "contato": "joao@email.com"}'
+
+# 2. Cadastre serviços e peças (se ainda não existirem)
+curl -X POST http://localhost:8080/api/servicos \
+  -u admin:admin \
+  -H "Content-Type: application/json" \
+  -d '{"descricao": "Troca de óleo e filtro", "preco": 150.00}'
+
+curl -X POST http://localhost:8080/api/pecas-insumos \
+  -u admin:admin \
+  -H "Content-Type: application/json" \
+  -d '{"nome": "Filtro de Óleo", "descricao": "Original", "preco": 45.90, "quantidadeEstoque": 100}'
+
+# 3. Crie a Ordem de Serviço (fluxo completo automático)
+curl -X POST http://localhost:8080/api/ordens-servico \
+  -u admin:admin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cpfCnpjCliente": "12345678901",
+    "veiculo": {
+      "placa": "ABC1234",
+      "marca": "Toyota",
+      "modelo": "Corolla",
+      "ano": 2020
+    },
+    "servicos": [{"servicoId": 1, "quantidade": 1}],
+    "pecas": [{"pecaInsumoId": 1, "quantidade": 2}],
+    "observacoes": "Revisão completa"
+  }'
+```
+
+**O que acontece automaticamente:**
+1. ✅ Valida se o cliente existe
+2. ✅ Verifica se o veículo existe; se não, cadastra
+3. ✅ Valida se há estoque suficiente das peças
+4. ✅ Calcula o orçamento total
+5. ✅ Cria a OS com status RECEBIDA
+6. ✅ Baixa as peças do estoque
+7. ✅ Simula envio do orçamento (muda para AGUARDANDO_APROVACAO)
 
 ## 🧪 Testando a API
 

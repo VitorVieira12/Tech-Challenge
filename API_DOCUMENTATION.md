@@ -264,6 +264,146 @@ Atualmente configurado com Spring Security básico:
 
 ---
 
+### 5. Ordens de Serviço
+
+#### 5.1 Criar Ordem de Serviço
+**POST** `/ordens-servico`
+
+Este é o fluxo principal do sistema. O endpoint:
+1. Identifica o cliente pelo CPF/CNPJ (deve estar cadastrado)
+2. Verifica se o veículo existe pela placa; se não, cadastra automaticamente
+3. Valida se todas as peças têm estoque suficiente
+4. Gera o orçamento automaticamente (soma dos preços)
+5. Cria a OS com status `RECEBIDA`
+6. Simula envio do orçamento e muda status para `AGUARDANDO_APROVACAO`
+
+**Request Body:**
+```json
+{
+  "cpfCnpjCliente": "12345678901",
+  "veiculo": {
+    "placa": "ABC1234",
+    "marca": "Toyota",
+    "modelo": "Corolla",
+    "ano": 2020
+  },
+  "servicos": [
+    {
+      "servicoId": 1,
+      "quantidade": 1
+    },
+    {
+      "servicoId": 2,
+      "quantidade": 1
+    }
+  ],
+  "pecas": [
+    {
+      "pecaInsumoId": 1,
+      "quantidade": 2
+    },
+    {
+      "pecaInsumoId": 3,
+      "quantidade": 1
+    }
+  ],
+  "observacoes": "Cliente solicitou revisão completa"
+}
+```
+
+**Validações:**
+- `cpfCnpjCliente`: obrigatório, 11 ou 14 dígitos
+- `veiculo.placa`: obrigatória, formato brasileiro
+- `veiculo.marca`, `modelo`, `ano`: obrigatórios apenas se o veículo não existir
+- `servicos[].servicoId`: deve existir no cadastro
+- `servicos[].quantidade`: mínimo 1
+- `pecas[].pecaInsumoId`: deve existir no cadastro
+- `pecas[].quantidade`: mínimo 1, não pode exceder estoque disponível
+
+**Response:** `201 Created`
+```json
+{
+  "id": 1,
+  "dataCriacao": "2025-10-05T15:30:00",
+  "valorTotalOrcamento": 520.00,
+  "status": "AGUARDANDO_APROVACAO",
+  "clienteId": 1,
+  "clienteNome": "João Silva",
+  "veiculoId": 1,
+  "veiculoPlaca": "ABC1234",
+  "veiculoModelo": "Toyota Corolla",
+  "servicos": [
+    {
+      "id": 1,
+      "servicoId": 1,
+      "servicoDescricao": "Troca de óleo e filtro",
+      "quantidade": 1,
+      "precoUnitario": 150.00,
+      "subtotal": 150.00
+    }
+  ],
+  "pecas": [
+    {
+      "id": 1,
+      "pecaInsumoId": 1,
+      "pecaInsumoNome": "Filtro de Óleo",
+      "quantidade": 2,
+      "precoUnitario": 45.90,
+      "subtotal": 91.80
+    }
+  ],
+  "observacoes": "Cliente solicitou revisão completa"
+}
+```
+
+**Comportamentos Especiais:**
+
+1. **Cliente não encontrado**: Retorna 404 com mensagem solicitando cadastro prévio
+2. **Veículo não cadastrado**: Cadastra automaticamente se marca, modelo e ano forem informados
+3. **Veículo já cadastrado**: Usa o veículo existente (ignora marca/modelo/ano do DTO)
+4. **Estoque insuficiente**: Retorna 400 com detalhes de cada peça insuficiente
+5. **Preços históricos**: Armazena preços atuais de serviços e peças no momento da criação
+
+#### 5.2 Buscar Ordem de Serviço por ID
+**GET** `/ordens-servico/{id}`
+
+**Response:** `200 OK`
+
+#### 5.3 Listar Ordens de Serviço
+**GET** `/ordens-servico`
+
+**Query Parameters:**
+- `status` (opcional): filtra por status
+  - Valores: `RECEBIDA`, `EM_DIAGNOSTICO`, `AGUARDANDO_APROVACAO`, `EM_EXECUCAO`, `FINALIZADA`, `ENTREGUE`
+- `clienteId` (opcional): filtra por cliente
+
+**Exemplos:**
+- Listar todas: `GET /ordens-servico`
+- Listar aguardando aprovação: `GET /ordens-servico?status=AGUARDANDO_APROVACAO`
+- Listar de um cliente: `GET /ordens-servico?clienteId=1`
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "id": 1,
+    "dataCriacao": "2025-10-05T15:30:00",
+    "valorTotalOrcamento": 520.00,
+    "status": "AGUARDANDO_APROVACAO",
+    "clienteId": 1,
+    "clienteNome": "João Silva",
+    "veiculoId": 1,
+    "veiculoPlaca": "ABC1234",
+    "veiculoModelo": "Toyota Corolla",
+    "servicos": [...],
+    "pecas": [...],
+    "observacoes": "..."
+  }
+]
+```
+
+---
+
 ## Respostas de Erro
 
 ### 400 Bad Request - Validação
@@ -302,6 +442,27 @@ Atualmente configurado com Spring Security básico:
   "error": "Conflict",
   "message": "Já existe um cliente cadastrado com este CPF/CNPJ",
   "path": "/api/clientes"
+}
+```
+
+### 400 Bad Request - Estoque Insuficiente
+```json
+{
+  "timestamp": "2025-10-05T15:30:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Estoque insuficiente para as seguintes peças: Filtro de Óleo (solicitado: 10, disponível: 5), Pastilha de Freio (solicitado: 8, disponível: 2)",
+  "path": "/api/ordens-servico",
+  "errors": [
+    {
+      "field": "peca_1",
+      "message": "Filtro de Óleo - Solicitado: 10, Disponível: 5"
+    },
+    {
+      "field": "peca_3",
+      "message": "Pastilha de Freio - Solicitado: 8, Disponível: 2"
+    }
+  ]
 }
 ```
 

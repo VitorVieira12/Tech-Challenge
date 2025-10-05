@@ -76,6 +76,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(EstoqueInsuficienteException.class)
+    public ResponseEntity<ErrorResponse> handleEstoqueInsuficienteException(
+            EstoqueInsuficienteException ex,
+            HttpServletRequest request) {
+        
+        List<ErrorResponse.FieldError> fieldErrors = ex.getItensInsuficientes().stream()
+            .map(item -> new ErrorResponse.FieldError(
+                "peca_" + item.getPecaId(),
+                String.format("%s - Solicitado: %d, Disponível: %d",
+                    item.getNomePeca(),
+                    item.getQuantidadeSolicitada(),
+                    item.getQuantidadeDisponivel())
+            ))
+            .collect(java.util.stream.Collectors.toList());
+        
+        ErrorResponse error = new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.BAD_REQUEST.value(),
+            "Bad Request",
+            ex.getMessage(),
+            request.getRequestURI(),
+            fieldErrors
+        );
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException ex,
