@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: Tech-Challenge
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tech_challenge
+    username: postgres
+    password: 123456
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        connection:
+          charSet: UTF-8
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc.lob.non_contextual_creation: true
+        temp.use_jdbc_metadata_defaults: false
+    open-in-view: false
+  security:
+    user:
+      name: admin
+      password: admin
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
