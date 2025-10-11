@@ -21,6 +21,9 @@ public class OrdemDeServicoResponseDTO {
     
     private Long id;
     private LocalDateTime dataCriacao;
+    private LocalDateTime dataInicioExecucao;
+    private LocalDateTime dataFinalizacao;
+    private LocalDateTime dataEntrega;
     private BigDecimal valorTotalOrcamento;
     private StatusOrdemServico status;
     private Long clienteId;
@@ -36,6 +39,9 @@ public class OrdemDeServicoResponseDTO {
         return new OrdemDeServicoResponseDTO(
             os.getId(),
             os.getDataCriacao(),
+            os.getDataInicioExecucao(),
+            os.getDataFinalizacao(),
+            os.getDataEntrega(),
             os.getValorTotalOrcamento(),
             os.getStatus(),
             os.getCliente().getId(),

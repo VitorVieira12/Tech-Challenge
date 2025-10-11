@@ -1,7 +1,10 @@
 package com.techchallenge.domain.service;
 
+import com.techchallenge.domain.dto.MonitoramentoDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoInputDTO;
+import com.techchallenge.domain.dto.OrdemDeServicoPublicDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoResponseDTO;
+import com.techchallenge.domain.dto.StatusUpdateDTO;
 import com.techchallenge.domain.exception.EstoqueInsuficienteException;
 import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.*;
@@ -16,8 +19,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Serviço para gerenciamento de Ordens de Serviço.
@@ -265,6 +273,206 @@ public class OrdemDeServicoService {
         return ordemDeServicoRepository.findByClienteId(clienteId).stream()
             .map(OrdemDeServicoResponseDTO::fromEntity)
             .toList();
+    }
+
+    /**
+     * Atualiza o status de uma Ordem de Serviço.
+     * Valida as transições de status e atualiza as datas correspondentes.
+     * 
+     * @param id ID da OS
+     * @param statusUpdateDTO Dados da atualização de status
+     * @return DTO com os dados atualizados da OS
+     * @throws ResourceNotFoundException se OS não encontrada
+     * @throws IllegalStateException se transição de status inválida
+     */
+    @Transactional
+    public OrdemDeServicoResponseDTO atualizarStatus(Long id, StatusUpdateDTO statusUpdateDTO) {
+        log.info("Atualizando status da OS {} para {}", id, statusUpdateDTO.getNovoStatus());
+        
+        OrdemDeServico os = ordemDeServicoRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço", id));
+        
+        StatusOrdemServico statusAtual = os.getStatus();
+        StatusOrdemServico novoStatus = statusUpdateDTO.getNovoStatus();
+        
+        // Validar transição de status
+        validarTransicaoStatus(statusAtual, novoStatus);
+        
+        // Atualizar status
+        os.setStatus(novoStatus);
+        
+        // Atualizar datas conforme o novo status
+        LocalDateTime agora = LocalDateTime.now();
+        switch (novoStatus) {
+            case EM_EXECUCAO:
+                if (os.getDataInicioExecucao() == null) {
+                    os.setDataInicioExecucao(agora);
+                    log.info("Data de início de execução definida: {}", agora);
+                }
+                break;
+            case FINALIZADA:
+                if (os.getDataFinalizacao() == null) {
+                    os.setDataFinalizacao(agora);
+                    log.info("Data de finalização definida: {}", agora);
+                }
+                break;
+            case ENTREGUE:
+                if (os.getDataEntrega() == null) {
+                    os.setDataEntrega(agora);
+                    log.info("Data de entrega definida: {}", agora);
+                }
+                break;
+        }
+        
+        // Adicionar observação se fornecida
+        if (statusUpdateDTO.getObservacao() != null && !statusUpdateDTO.getObservacao().isBlank()) {
+            String observacaoAtual = os.getObservacoes() != null ? os.getObservacoes() : "";
+            String novaObservacao = String.format("%s\n[%s] Status alterado para %s: %s", 
+                observacaoAtual, agora, novoStatus, statusUpdateDTO.getObservacao());
+            os.setObservacoes(novaObservacao.trim());
+        }
+        
+        OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
+        log.info("Status da OS {} atualizado com sucesso de {} para {}", id, statusAtual, novoStatus);
+        
+        return OrdemDeServicoResponseDTO.fromEntity(osSalva);
+    }
+
+    /**
+     * Valida se a transição de status é permitida.
+     * Define as regras de negócio para mudanças de status.
+     * 
+     * @param statusAtual Status atual da OS
+     * @param novoStatus Novo status desejado
+     * @throws IllegalStateException se a transição não for permitida
+     */
+    private void validarTransicaoStatus(StatusOrdemServico statusAtual, StatusOrdemServico novoStatus) {
+        // Mapear as transições válidas para cada status
+        Map<StatusOrdemServico, Set<StatusOrdemServico>> transicoesValidas = Map.of(
+            StatusOrdemServico.RECEBIDA, EnumSet.of(
+                StatusOrdemServico.EM_DIAGNOSTICO,
+                StatusOrdemServico.AGUARDANDO_APROVACAO
+            ),
+            StatusOrdemServico.EM_DIAGNOSTICO, EnumSet.of(
+                StatusOrdemServico.AGUARDANDO_APROVACAO,
+                StatusOrdemServico.RECEBIDA  // Pode voltar se necessário
+            ),
+            StatusOrdemServico.AGUARDANDO_APROVACAO, EnumSet.of(
+                StatusOrdemServico.EM_EXECUCAO,
+                StatusOrdemServico.RECEBIDA  // Cliente pode rejeitar e voltar
+            ),
+            StatusOrdemServico.EM_EXECUCAO, EnumSet.of(
+                StatusOrdemServico.FINALIZADA,
+                StatusOrdemServico.EM_DIAGNOSTICO  // Pode voltar se houver problema
+            ),
+            StatusOrdemServico.FINALIZADA, EnumSet.of(
+                StatusOrdemServico.ENTREGUE
+                // Não permite voltar de FINALIZADA para outros status
+            ),
+            StatusOrdemServico.ENTREGUE, EnumSet.noneOf(StatusOrdemServico.class)
+            // ENTREGUE é o estado final, não permite alterações
+        );
+        
+        // Se já está no status desejado, não fazer nada
+        if (statusAtual == novoStatus) {
+            log.warn("OS já está no status {}", novoStatus);
+            return;
+        }
+        
+        // Verificar se a transição é válida
+        Set<StatusOrdemServico> statusPermitidos = transicoesValidas.get(statusAtual);
+        if (statusPermitidos == null || !statusPermitidos.contains(novoStatus)) {
+            throw new IllegalStateException(
+                String.format("Transição de status inválida: não é possível mudar de %s para %s", 
+                    statusAtual, novoStatus)
+            );
+        }
+    }
+
+    /**
+     * Consulta pública de OS para o cliente.
+     * Requer autenticação via CPF/CNPJ + ID da OS.
+     * Retorna apenas informações essenciais e seguras.
+     * 
+     * @param osId ID da Ordem de Serviço
+     * @param cpfCnpjCliente CPF/CNPJ do cliente para autenticação
+     * @return DTO público com informações essenciais da OS
+     * @throws ResourceNotFoundException se OS não encontrada ou não pertence ao cliente
+     */
+    @Transactional(readOnly = true)
+    public OrdemDeServicoPublicDTO consultarStatusPublico(Long osId, String cpfCnpjCliente) {
+        log.info("Consulta pública da OS {} com CPF/CNPJ: {}", osId, cpfCnpjCliente);
+        
+        OrdemDeServico os = ordemDeServicoRepository.findById(osId)
+            .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço", osId));
+        
+        // Verificar se a OS pertence ao cliente que está consultando
+        if (!os.getCliente().getCpfCnpj().equals(cpfCnpjCliente)) {
+            log.warn("Tentativa de acesso não autorizado à OS {} com CPF/CNPJ: {}", osId, cpfCnpjCliente);
+            throw new ResourceNotFoundException("Ordem de Serviço", osId);
+        }
+        
+        log.info("Consulta pública autorizada para OS {}", osId);
+        return OrdemDeServicoPublicDTO.fromEntity(os);
+    }
+
+    /**
+     * Calcula o tempo médio de execução das Ordens de Serviço finalizadas.
+     * Considera apenas OSs com data de início e finalização definidas.
+     * 
+     * @return DTO com estatísticas de tempo médio de execução
+     */
+    @Transactional(readOnly = true)
+    public MonitoramentoDTO calcularTempoMedioExecucao() {
+        log.info("Calculando tempo médio de execução das OSs");
+        
+        // Buscar todas as OSs finalizadas
+        List<OrdemDeServico> osFinalizadas = ordemDeServicoRepository.findByStatus(StatusOrdemServico.FINALIZADA);
+        
+        // Adicionar também as OSs entregues
+        List<OrdemDeServico> osEntregues = ordemDeServicoRepository.findByStatus(StatusOrdemServico.ENTREGUE);
+        List<OrdemDeServico> todasFinalizadas = new ArrayList<>();
+        todasFinalizadas.addAll(osFinalizadas);
+        todasFinalizadas.addAll(osEntregues);
+        
+        // Filtrar apenas as que têm data de início e finalização
+        List<Duration> temposExecucao = todasFinalizadas.stream()
+            .filter(os -> os.getDataInicioExecucao() != null && os.getDataFinalizacao() != null)
+            .map(os -> Duration.between(os.getDataInicioExecucao(), os.getDataFinalizacao()))
+            .toList();
+        
+        if (temposExecucao.isEmpty()) {
+            log.info("Nenhuma OS finalizada com dados de tempo disponíveis");
+            return new MonitoramentoDTO(0.0, 0L, 0.0, 0.0);
+        }
+        
+        // Calcular estatísticas
+        double mediaHoras = temposExecucao.stream()
+            .mapToLong(Duration::toMinutes)
+            .average()
+            .orElse(0.0) / 60.0;
+        
+        double minimoHoras = temposExecucao.stream()
+            .mapToLong(Duration::toMinutes)
+            .min()
+            .orElse(0) / 60.0;
+        
+        double maximoHoras = temposExecucao.stream()
+            .mapToLong(Duration::toMinutes)
+            .max()
+            .orElse(0) / 60.0;
+        
+        long quantidade = temposExecucao.size();
+        
+        log.info("Tempo médio de execução calculado: {} horas (baseado em {} OSs)", 
+            String.format("%.2f", mediaHoras), quantidade);
+        
+        return new MonitoramentoDTO(
+            Math.round(mediaHoras * 100.0) / 100.0,  // Arredondar para 2 casas decimais
+            quantidade,
+            Math.round(minimoHoras * 100.0) / 100.0,
+            Math.round(maximoHoras * 100.0) / 100.0
+        );
     }
 }
 

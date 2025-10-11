@@ -28,6 +28,15 @@ public class OrdemDeServico {
     @Column(nullable = false)
     private LocalDateTime dataCriacao;
 
+    @Column
+    private LocalDateTime dataInicioExecucao;
+
+    @Column
+    private LocalDateTime dataFinalizacao;
+
+    @Column
+    private LocalDateTime dataEntrega;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal valorTotalOrcamento;
 

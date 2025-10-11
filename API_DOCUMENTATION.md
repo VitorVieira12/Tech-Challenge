@@ -388,8 +388,11 @@ Este é o fluxo principal do sistema. O endpoint:
   {
     "id": 1,
     "dataCriacao": "2025-10-05T15:30:00",
+    "dataInicioExecucao": "2025-10-05T16:00:00",
+    "dataFinalizacao": null,
+    "dataEntrega": null,
     "valorTotalOrcamento": 520.00,
-    "status": "AGUARDANDO_APROVACAO",
+    "status": "EM_EXECUCAO",
     "clienteId": 1,
     "clienteNome": "João Silva",
     "veiculoId": 1,
@@ -401,6 +404,152 @@ Este é o fluxo principal do sistema. O endpoint:
   }
 ]
 ```
+
+#### 5.4 Atualizar Status da Ordem de Serviço (Administrativo)
+**PATCH** `/ordens-servico/{id}/status`
+
+Permite que administradores alterem o status de uma OS seguindo as regras de transição.
+As datas são atualizadas automaticamente conforme o novo status.
+
+**Regras de Transição:**
+- `RECEBIDA` → `EM_DIAGNOSTICO` ou `AGUARDANDO_APROVACAO`
+- `EM_DIAGNOSTICO` → `AGUARDANDO_APROVACAO` ou `RECEBIDA`
+- `AGUARDANDO_APROVACAO` → `EM_EXECUCAO` ou `RECEBIDA`
+- `EM_EXECUCAO` → `FINALIZADA` ou `EM_DIAGNOSTICO`
+- `FINALIZADA` → `ENTREGUE` (não pode voltar)
+- `ENTREGUE` → (estado final, sem transições)
+
+**Request Body:**
+```json
+{
+  "novoStatus": "EM_EXECUCAO",
+  "observacao": "Cliente aprovou o orçamento. Iniciando serviços."
+}
+```
+
+**Validações:**
+- `novoStatus`: obrigatório, deve ser um status válido
+- `observacao`: opcional, será adicionada ao histórico da OS
+
+**Response:** `200 OK`
+```json
+{
+  "id": 1,
+  "dataCriacao": "2025-10-05T15:30:00",
+  "dataInicioExecucao": "2025-10-05T16:00:00",
+  "dataFinalizacao": null,
+  "dataEntrega": null,
+  "valorTotalOrcamento": 520.00,
+  "status": "EM_EXECUCAO",
+  "clienteId": 1,
+  "clienteNome": "João Silva",
+  "veiculoId": 1,
+  "veiculoPlaca": "ABC1234",
+  "veiculoModelo": "Toyota Corolla",
+  "servicos": [...],
+  "pecas": [...],
+  "observacoes": "Cliente solicitou revisão completa\n[2025-10-05T16:00:00] Status alterado para EM_EXECUCAO: Cliente aprovou o orçamento. Iniciando serviços."
+}
+```
+
+**Comportamentos Especiais:**
+1. Ao mudar para `EM_EXECUCAO`: define automaticamente `dataInicioExecucao`
+2. Ao mudar para `FINALIZADA`: define automaticamente `dataFinalizacao`
+3. Ao mudar para `ENTREGUE`: define automaticamente `dataEntrega`
+4. Observações são acumuladas com timestamp
+
+**Erros Possíveis:**
+- `400 Bad Request`: Transição de status inválida
+```json
+{
+  "timestamp": "2025-10-05T16:00:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Transição de status inválida: não é possível mudar de FINALIZADA para EM_EXECUCAO",
+  "path": "/api/ordens-servico/1/status"
+}
+```
+
+#### 5.5 Consultar Status da OS (Público - Cliente)
+**GET** `/ordens-servico/status/{id}?cpfCnpj={cpfCnpj}`
+
+Endpoint público que permite ao cliente consultar o status de sua OS.
+Requer autenticação simples via CPF/CNPJ para segurança.
+Retorna apenas informações essenciais, sem expor dados sensíveis ou de outros clientes.
+
+**Query Parameters:**
+- `cpfCnpj` (obrigatório): CPF ou CNPJ do cliente (11 ou 14 dígitos)
+
+**Exemplo:**
+`GET /ordens-servico/status/1?cpfCnpj=12345678901`
+
+**Response:** `200 OK`
+```json
+{
+  "id": 1,
+  "dataCriacao": "2025-10-05T15:30:00",
+  "status": "EM_EXECUCAO",
+  "veiculoPlaca": "ABC1234",
+  "veiculoModelo": "Toyota Corolla",
+  "valorTotalOrcamento": 520.00,
+  "servicos": [
+    {
+      "descricao": "Troca de óleo e filtro",
+      "quantidade": 1
+    }
+  ],
+  "observacoes": "Cliente solicitou revisão completa",
+  "dataInicioExecucao": "2025-10-05T16:00:00",
+  "dataFinalizacao": null,
+  "dataEntrega": null
+}
+```
+
+**Segurança:**
+- Não retorna informações do cliente (nome, CPF, contato)
+- Não retorna preços detalhados de peças/serviços
+- Valida que o CPF/CNPJ corresponde ao cliente da OS
+- Retorna 404 se OS não existir ou CPF/CNPJ não corresponder
+
+**Erros Possíveis:**
+- `404 Not Found`: OS não encontrada ou CPF/CNPJ não corresponde
+```json
+{
+  "timestamp": "2025-10-05T16:00:00",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Ordem de Serviço com ID 1 não encontrada",
+  "path": "/api/ordens-servico/status/1"
+}
+```
+
+#### 5.6 Monitoramento - Tempo Médio de Execução
+**GET** `/ordens-servico/monitoramento/tempo-medio`
+
+Retorna estatísticas sobre o tempo médio de execução das OSs finalizadas.
+Útil para monitoramento e análise de desempenho da oficina.
+
+**Response:** `200 OK`
+```json
+{
+  "tempoMedioExecucaoHoras": 24.5,
+  "quantidadeOsFinalizadas": 45,
+  "tempoMinimoHoras": 2.5,
+  "tempoMaximoHoras": 72.0
+}
+```
+
+**Campos:**
+- `tempoMedioExecucaoHoras`: Média de horas entre início da execução e finalização
+- `quantidadeOsFinalizadas`: Quantidade de OSs consideradas no cálculo
+- `tempoMinimoHoras`: Menor tempo de execução registrado
+- `tempoMaximoHoras`: Maior tempo de execução registrado
+
+**Regras de Cálculo:**
+1. Considera apenas OSs com status `FINALIZADA` ou `ENTREGUE`
+2. Considera apenas OSs que têm `dataInicioExecucao` e `dataFinalizacao` definidas
+3. Tempo calculado: `dataFinalizacao - dataInicioExecucao`
+4. Se não houver OSs finalizadas, retorna zeros
 
 ---
 
