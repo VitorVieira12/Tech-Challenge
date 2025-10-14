@@ -3,6 +3,7 @@ package com.techchallenge.controller;
 import com.techchallenge.domain.dto.VeiculoDTO;
 import com.techchallenge.domain.dto.VeiculoResponseDTO;
 import com.techchallenge.domain.service.VeiculoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/veiculos")
 @RequiredArgsConstructor
+@Tag(name = "Veículos", description = "CRUD de veículos")
 public class VeiculoController {
 
     private final VeiculoService veiculoService;

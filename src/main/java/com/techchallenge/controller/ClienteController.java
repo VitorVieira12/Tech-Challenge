@@ -3,6 +3,7 @@ package com.techchallenge.controller;
 import com.techchallenge.domain.dto.ClienteDTO;
 import com.techchallenge.domain.dto.ClienteResponseDTO;
 import com.techchallenge.domain.service.ClienteService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/clientes")
 @RequiredArgsConstructor
+@Tag(name = "Clientes", description = "CRUD de clientes")
 public class ClienteController {
 
     private final ClienteService clienteService;

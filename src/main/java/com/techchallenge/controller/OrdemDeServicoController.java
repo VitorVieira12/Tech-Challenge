@@ -7,6 +7,9 @@ import com.techchallenge.domain.dto.OrdemDeServicoResponseDTO;
 import com.techchallenge.domain.dto.StatusUpdateDTO;
 import com.techchallenge.domain.model.StatusOrdemServico;
 import com.techchallenge.domain.service.OrdemDeServicoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,6 +24,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/ordens-servico")
 @RequiredArgsConstructor
+@Tag(name = "Ordens de Serviço", description = "Gerenciamento completo de Ordens de Serviço")
 public class OrdemDeServicoController {
 
     private final OrdemDeServicoService ordemDeServicoService;
@@ -110,6 +114,11 @@ public class OrdemDeServicoController {
      * - cpfCnpj: CPF/CNPJ do cliente para autenticação
      */
     @GetMapping("/status/{id}")
+    @Operation(
+            summary = "Consultar status de OS (público)",
+            description = "Endpoint público para clientes consultarem suas OSs. Requer CPF/CNPJ para autenticação.",
+            security = {} // Remove required authentication for this endpoint
+    )
     public ResponseEntity<OrdemDeServicoPublicDTO> consultarStatusPublico(
             @PathVariable Long id,
             @RequestParam String cpfCnpj) {

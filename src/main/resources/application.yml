@@ -19,12 +19,23 @@ spring:
         jdbc.lob.non_contextual_creation: true
         temp.use_jdbc_metadata_defaults: false
     open-in-view: false
-  security:
-    user:
-      name: admin
-      password: admin
+
+# JWT Configuration
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 86400000 # 24 hours in milliseconds
+
+# SpringDoc/Swagger Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
 
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.techchallenge.security: DEBUG

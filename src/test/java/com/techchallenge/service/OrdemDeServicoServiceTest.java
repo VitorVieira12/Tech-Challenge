@@ -1,0 +1,283 @@
+package com.techchallenge.service;
+
+import com.techchallenge.domain.dto.*;
+import com.techchallenge.domain.exception.EstoqueInsuficienteException;
+import com.techchallenge.domain.exception.ResourceNotFoundException;
+import com.techchallenge.domain.model.*;
+import com.techchallenge.domain.repository.*;
+import com.techchallenge.domain.service.OrdemDeServicoService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+/**
+ * Testes unitários para OrdemDeServicoService.
+ * Testa os fluxos críticos de criação de OS e gestão de estoque.
+ */
+@ExtendWith(MockitoExtension.class)
+@DisplayName("OrdemDeServicoService - Testes Unitários")
+class OrdemDeServicoServiceTest {
+
+    @Mock
+    private OrdemDeServicoRepository ordemDeServicoRepository;
+    
+    @Mock
+    private ClienteRepository clienteRepository;
+    
+    @Mock
+    private VeiculoRepository veiculoRepository;
+    
+    @Mock
+    private ServicoRepository servicoRepository;
+    
+    @Mock
+    private PecaInsumoRepository pecaInsumoRepository;
+
+    @InjectMocks
+    private OrdemDeServicoService ordemDeServicoService;
+
+    private Cliente cliente;
+    private Veiculo veiculo;
+    private Servico servico;
+    private PecaInsumo peca;
+
+    @BeforeEach
+    void setUp() {
+        // Setup de dados comuns para os testes
+        cliente = new Cliente();
+        cliente.setId(1L);
+        cliente.setNome("João Silva");
+        cliente.setCpfCnpj("12345678901");
+        cliente.setContato("joao@email.com");
+
+        veiculo = new Veiculo();
+        veiculo.setId(1L);
+        veiculo.setPlaca("ABC1234");
+        veiculo.setMarca("Toyota");
+        veiculo.setModelo("Corolla");
+        veiculo.setAno(2020);
+        veiculo.setCliente(cliente);
+
+        servico = new Servico();
+        servico.setId(1L);
+        servico.setDescricao("Troca de óleo");
+        servico.setPreco(new BigDecimal("150.00"));
+
+        peca = new PecaInsumo();
+        peca.setId(1L);
+        peca.setNome("Filtro de óleo");
+        peca.setPreco(new BigDecimal("45.90"));
+        peca.setQuantidadeEstoque(100);
+    }
+
+    @Test
+    @DisplayName("Deve criar OS com sucesso quando todos os dados são válidos")
+    void deveCriarOSComSucesso() {
+        // Arrange
+        OrdemDeServicoInputDTO input = criarInputDTOValido();
+        
+        when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.of(cliente));
+        when(veiculoRepository.findByPlaca("ABC1234")).thenReturn(Optional.of(veiculo));
+        when(servicoRepository.findById(1L)).thenReturn(Optional.of(servico));
+        when(pecaInsumoRepository.findById(1L)).thenReturn(Optional.of(peca));
+        when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenAnswer(i -> {
+            OrdemDeServico os = i.getArgument(0);
+            os.setId(1L);
+            return os;
+        });
+
+        // Act
+        OrdemDeServicoResponseDTO result = ordemDeServicoService.criarOS(input);
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        assertThat(result.getValorTotalOrcamento()).isEqualByComparingTo(new BigDecimal("241.80")); // 150 + (45.90 * 2)
+        
+        verify(clienteRepository).findByCpfCnpj("12345678901");
+        verify(veiculoRepository).findByPlaca("ABC1234");
+        verify(servicoRepository).findById(1L);
+        verify(pecaInsumoRepository).findById(1L);
+        verify(ordemDeServicoRepository, times(2)).save(any(OrdemDeServico.class)); // Uma vez na criação, outra no envio
+        verify(pecaInsumoRepository).save(peca); // Verifica que o estoque foi atualizado
+        
+        // Verifica se o estoque foi baixado
+        assertThat(peca.getQuantidadeEstoque()).isEqualTo(98); // 100 - 2
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando cliente não existe")
+    void deveLancarExcecaoQuandoClienteNaoExiste() {
+        // Arrange
+        OrdemDeServicoInputDTO input = criarInputDTOValido();
+        when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> ordemDeServicoService.criarOS(input))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Cliente com CPF/CNPJ 12345678901 não encontrado");
+        
+        verify(clienteRepository).findByCpfCnpj("12345678901");
+        verifyNoInteractions(veiculoRepository, servicoRepository, pecaInsumoRepository, ordemDeServicoRepository);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando estoque é insuficiente")
+    void deveLancarExcecaoQuandoEstoqueInsuficiente() {
+        // Arrange
+        OrdemDeServicoInputDTO input = criarInputDTOValido();
+        peca.setQuantidadeEstoque(1); // Estoque menor que a quantidade solicitada (2)
+        
+        when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.of(cliente));
+        when(veiculoRepository.findByPlaca("ABC1234")).thenReturn(Optional.of(veiculo));
+        when(servicoRepository.findById(1L)).thenReturn(Optional.of(servico));
+        when(pecaInsumoRepository.findById(1L)).thenReturn(Optional.of(peca));
+
+        // Act & Assert
+        assertThatThrownBy(() -> ordemDeServicoService.criarOS(input))
+                .isInstanceOf(EstoqueInsuficienteException.class);
+        
+        verify(clienteRepository).findByCpfCnpj("12345678901");
+        verify(veiculoRepository).findByPlaca("ABC1234");
+        verify(servicoRepository).findById(1L);
+        verify(pecaInsumoRepository).findById(1L);
+        verifyNoInteractions(ordemDeServicoRepository);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar status com sucesso quando transição é válida")
+    void deveAtualizarStatusComSucesso() {
+        // Arrange
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        os.setValorTotalOrcamento(new BigDecimal("200.00"));
+        
+        StatusUpdateDTO statusUpdate = new StatusUpdateDTO();
+        statusUpdate.setNovoStatus(StatusOrdemServico.EM_EXECUCAO);
+        statusUpdate.setObservacao("Cliente aprovou");
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+        when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenReturn(os);
+
+        // Act
+        OrdemDeServicoResponseDTO result = ordemDeServicoService.atualizarStatus(1L, statusUpdate);
+
+        // Assert
+        assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
+        assertThat(os.getDataInicioExecucao()).isNotNull();
+        verify(ordemDeServicoRepository).findById(1L);
+        verify(ordemDeServicoRepository).save(os);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando transição de status é inválida")
+    void deveLancarExcecaoQuandoTransicaoInvalida() {
+        // Arrange
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.FINALIZADA);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        
+        StatusUpdateDTO statusUpdate = new StatusUpdateDTO();
+        statusUpdate.setNovoStatus(StatusOrdemServico.EM_EXECUCAO);
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+
+        // Act & Assert
+        assertThatThrownBy(() -> ordemDeServicoService.atualizarStatus(1L, statusUpdate))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Transição de status inválida");
+        
+        verify(ordemDeServicoRepository).findById(1L);
+        verify(ordemDeServicoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve permitir consulta pública com CPF correto")
+    void devePermitirConsultaPublicaComCPFCorreto() {
+        // Arrange
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.EM_EXECUCAO);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        os.setValorTotalOrcamento(new BigDecimal("200.00"));
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+
+        // Act
+        OrdemDeServicoPublicDTO result = ordemDeServicoService.consultarStatusPublico(1L, "12345678901");
+
+        // Assert
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
+        assertThat(result.getVeiculoPlaca()).isEqualTo("ABC1234");
+        verify(ordemDeServicoRepository).findById(1L);
+    }
+
+    @Test
+    @DisplayName("Deve bloquear consulta pública com CPF incorreto")
+    void deveBloquearConsultaPublicaComCPFIncorreto() {
+        // Arrange
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+
+        // Act & Assert
+        assertThatThrownBy(() -> ordemDeServicoService.consultarStatusPublico(1L, "99999999999"))
+                .isInstanceOf(ResourceNotFoundException.class);
+        
+        verify(ordemDeServicoRepository).findById(1L);
+    }
+
+    // Helper methods
+    private OrdemDeServicoInputDTO criarInputDTOValido() {
+        OrdemDeServicoInputDTO input = new OrdemDeServicoInputDTO();
+        input.setCpfCnpjCliente("12345678901");
+        
+        VeiculoInputDTO veiculoDTO = new VeiculoInputDTO();
+        veiculoDTO.setPlaca("ABC1234");
+        veiculoDTO.setMarca("Toyota");
+        veiculoDTO.setModelo("Corolla");
+        veiculoDTO.setAno(2020);
+        input.setVeiculo(veiculoDTO);
+        
+        ItemServicoDTO servicoDTO = new ItemServicoDTO();
+        servicoDTO.setServicoId(1L);
+        servicoDTO.setQuantidade(1);
+        input.setServicos(List.of(servicoDTO));
+        
+        ItemPecaDTO pecaDTO = new ItemPecaDTO();
+        pecaDTO.setPecaInsumoId(1L);
+        pecaDTO.setQuantidade(2);
+        input.setPecas(List.of(pecaDTO));
+        
+        input.setObservacoes("Teste");
+        
+        return input;
+    }
+}
+
+
+

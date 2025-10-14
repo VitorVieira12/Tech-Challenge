@@ -1,314 +1,543 @@
-# Tech Challenge - Sistema de Gestão de Oficina
+# 🚗 Tech Challenge - Sistema de Gestão de Oficina Mecânica
 
-Sistema de gerenciamento de oficina mecânica desenvolvido com Spring Boot 3.5.6, Java 21 e PostgreSQL.
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 📋 Funcionalidades
+API RESTful para gerenciamento completo de oficina mecânica, desenvolvida com Spring Boot 3, JWT Authentication, documentação Swagger/OpenAPI e containerização Docker.
 
-- ✅ **Gestão de Clientes**: Cadastro completo com validação de CPF/CNPJ
-- ✅ **Gestão de Veículos**: Cadastro com validação de placa brasileira (formato antigo e Mercosul)
-- ✅ **Gestão de Peças e Insumos**: Controle de estoque e preços
-- ✅ **Gestão de Serviços**: Catálogo de serviços oferecidos
-- ✅ **Criação de Ordem de Serviço**: Fluxo completo automatizado
-  - Identificação do cliente por CPF/CNPJ
-  - Cadastro automático de veículo (se necessário)
+---
+
+## 📋 Índice
+
+- [Sobre o Projeto](#sobre-o-projeto)
+- [Tecnologias](#tecnologias)
+- [Funcionalidades](#funcionalidades)
+- [Pré-requisitos](#pré-requisitos)
+- [Instalação e Execução](#instalação-e-execução)
+- [Documentação da API](#documentação-da-api)
+- [Autenticação](#autenticação)
+- [Testes](#testes)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Contribuindo](#contribuindo)
+
+---
+
+## 🎯 Sobre o Projeto
+
+O **Tech Challenge** é uma aplicação completa de gerenciamento de oficina mecânica que permite:
+
+- ✅ Gestão completa de **Clientes**, **Veículos**, **Peças** e **Serviços**
+- ✅ Criação e acompanhamento de **Ordens de Serviço** (OS)
+- ✅ **Controle de estoque** de peças com validação automática
+- ✅ **Gestão de status** de OS com validação de transições
+- ✅ **Consulta pública** para clientes acompanharem suas OSs
+- ✅ **Monitoramento** de tempo médio de execução
+- ✅ **Autenticação JWT** para endpoints administrativos
+- ✅ **Documentação interativa** com Swagger/OpenAPI
+
+---
+
+## 🚀 Tecnologias
+
+### Backend
+- **Java 21** - Linguagem de programação
+- **Spring Boot 3.5.6** - Framework principal
+- **Spring Security** - Segurança e autenticação
+- **JWT (JSON Web Tokens)** - Autenticação stateless
+- **Spring Data JPA** - Persistência de dados
+- **PostgreSQL 15** - Banco de dados relacional
+- **Hibernate** - ORM
+- **Bean Validation** - Validação de dados
+- **Lombok** - Redução de boilerplate
+
+### Documentação
+- **SpringDoc OpenAPI** - Documentação automática da API
+- **Swagger UI** - Interface interativa para testes
+
+### Testes
+- **JUnit 5** - Framework de testes
+- **Mockito** - Mocks para testes unitários
+- **Testcontainers** - Testes de integração com PostgreSQL real
+- **JaCoCo** - Cobertura de código (target: 80%)
+- **Spring Boot Test** - Testes de integração
+
+### DevOps
+- **Docker** - Containerização
+- **Docker Compose** - Orquestração de containers
+- **Maven** - Gerenciamento de dependências
+
+---
+
+## ✨ Funcionalidades
+
+### 1. Gestão de Clientes
+- CRUD completo de clientes
+- Validação de CPF/CNPJ
+
+### 2. Gestão de Veículos
+- CRUD completo de veículos
+- Associação automática com clientes
+- Validação de placas (formato antigo e Mercosul)
+
+### 3. Gestão de Peças e Insumos
+- CRUD completo de peças
+- **Controle de estoque** em tempo real
+- Ajuste incremental de estoque
+
+### 4. Gestão de Serviços
+- CRUD completo de serviços oferecidos
+- Precificação de serviços
+
+### 5. Ordens de Serviço (OS)
+- **Criação automatizada** com:
+  - Identificação de cliente por CPF/CNPJ
+  - Cadastro automático de veículo (se novo)
   - Validação de estoque de peças
   - Geração automática de orçamento
-  - Controle de status da OS
-  - Baixa automática no estoque
-- ✅ **Validações Robustas**: Validação de dados sensíveis (CPF/CNPJ, placas)
-- ✅ **Tratamento de Exceções**: Respostas de erro padronizadas
-- ✅ **API RESTful**: Seguindo convenções REST
+  - Baixa automática em estoque
 
-## 🛠 Tecnologias
+- **Gestão de Status** com validação:
+  - `RECEBIDA` → `EM_DIAGNOSTICO` → `AGUARDANDO_APROVACAO`
+  - `AGUARDANDO_APROVACAO` → `EM_EXECUCAO`
+  - `EM_EXECUCAO` → `FINALIZADA` → `ENTREGUE`
 
-- **Java 21**
-- **Spring Boot 3.5.6**
-  - Spring Data JPA
-  - Spring Web
-  - Spring Validation
-  - Spring Security
-- **PostgreSQL**
-- **Lombok**
-- **Maven**
+- **Consulta Pública**:
+  - Clientes podem consultar suas OSs via CPF/CNPJ
+  - Endpoint público (sem JWT)
+  - Dados seguros (sem informações sensíveis)
+
+- **Monitoramento**:
+  - Tempo médio de execução
+  - Estatísticas (mín, máx, quantidade)
+
+### 6. Segurança
+- **Autenticação JWT** em todos os endpoints administrativos
+- Endpoint público para consulta de clientes
+- Credenciais padrão: `admin/admin`
+
+---
 
 ## 📦 Pré-requisitos
 
-- JDK 21+
-- PostgreSQL 12+
-- Maven 3.6+
+### Opção 1: Executar com Docker (Recomendado)
+- **Docker** 20.10+
+- **Docker Compose** 2.0+
 
-## 🚀 Configuração e Execução
+### Opção 2: Executar localmente
+- **Java 21**
+- **Maven 3.9+**
+- **PostgreSQL 15+**
 
-### 1. Configurar o Banco de Dados
+---
 
-Crie o banco de dados PostgreSQL:
+## 🎮 Instalação e Execução
 
-```sql
-CREATE DATABASE tech_challenge;
+### 🐳 Opção 1: Docker Compose (Recomendado)
+
+A maneira mais simples de executar o projeto:
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/seu-usuario/tech-challenge.git
+cd tech-challenge
+
+# 2. Execute o projeto
+docker-compose up -d
+
+# 3. Aguarde a aplicação iniciar (cerca de 60 segundos)
+# Acompanhe os logs:
+docker-compose logs -f app
+
+# 4. Acesse a aplicação
+# API: http://localhost:8080
+# Swagger UI: http://localhost:8080/swagger-ui.html
 ```
 
-### 2. Configurar Credenciais
+**Pronto!** A aplicação e o banco de dados estão rodando.
 
-As configurações do banco estão no arquivo `src/main/resources/application.yml`:
+#### Comandos Úteis Docker
+
+```bash
+# Parar os containers
+docker-compose down
+
+# Parar e remover volumes (limpa banco de dados)
+docker-compose down -v
+
+# Rebuild da aplicação
+docker-compose up --build
+
+# Ver logs
+docker-compose logs -f
+
+# Ver apenas logs da aplicação
+docker-compose logs -f app
+
+# Ver apenas logs do banco
+docker-compose logs -f postgres
+```
+
+---
+
+### 💻 Opção 2: Executar Localmente
+
+#### 1. Configurar o Banco de Dados
+
+```bash
+# Criar banco de dados PostgreSQL
+createdb tech_challenge
+
+# Ou via psql:
+psql -U postgres
+CREATE DATABASE tech_challenge;
+\q
+```
+
+#### 2. Configurar application.yml
+
+Edite `src/main/resources/application.yml`:
 
 ```yaml
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/tech_challenge
-    username: postgres
-    password: 123456
+    username: seu_usuario
+    password: sua_senha
 ```
 
-**Ajuste as credenciais conforme seu ambiente.**
-
-### 3. Executar o Projeto
+#### 3. Executar a Aplicação
 
 ```bash
-# Compilar o projeto
-mvn clean install
+# Compilar e executar
+./mvnw spring-boot:run
 
-# Executar a aplicação
+# Ou com Maven instalado:
 mvn spring-boot:run
 ```
 
-A aplicação estará disponível em: `http://localhost:8080`
+#### 4. Acessar
 
-### 4. Criar as Tabelas
+- API: `http://localhost:8080`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
 
-O Hibernate está configurado com `ddl-auto: update`, então as tabelas serão criadas automaticamente na primeira execução.
-
-Alternativamente, você pode executar o script SQL:
-
-```bash
-psql -U postgres -d tech_challenge -f src/main/resources/scripts/create-database.sql
-```
-
-## 🔐 Autenticação
-
-A aplicação utiliza Spring Security com autenticação básica:
-
-- **Usuário**: `admin`
-- **Senha**: `admin`
+---
 
 ## 📚 Documentação da API
 
-Consulte o arquivo [API_DOCUMENTATION.md](API_DOCUMENTATION.md) para detalhes completos sobre todos os endpoints.
+### Swagger UI (Recomendado)
 
-### Endpoints Principais
+Acesse a documentação interativa em: **http://localhost:8080/swagger-ui.html**
 
-- **Clientes**: `/api/clientes`
-- **Veículos**: `/api/veiculos`
-- **Peças/Insumos**: `/api/pecas-insumos`
-- **Serviços**: `/api/servicos`
-- **Ordens de Serviço**: `/api/ordens-servico`
+**Funcionalidades do Swagger:**
+- ✅ Visualização de todos os endpoints
+- ✅ Testes interativos
+- ✅ Autenticação JWT integrada
+- ✅ Exemplos de request/response
 
-### Exemplo de Requisição
+### OpenAPI JSON
 
-```bash
-# Criar um cliente
-curl -X POST http://localhost:8080/api/clientes \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "João Silva",
-    "cpfCnpj": "12345678901",
-    "contato": "joao@email.com"
-  }'
-```
+Acesse: **http://localhost:8080/v3/api-docs**
 
-## 🏗 Arquitetura
+### Documentação Markdown
 
-```
-src/main/java/com/techchallenge/
-├── controller/              # Controladores REST
-│   ├── ClienteController.java
-│   ├── VeiculoController.java
-│   ├── PecaInsumoController.java
-│   └── ServicoController.java
-├── domain/
-│   ├── dto/                 # Data Transfer Objects
-│   │   ├── ClienteDTO.java
-│   │   ├── ClienteResponseDTO.java
-│   │   └── ...
-│   ├── exception/           # Exceções customizadas
-│   │   ├── ResourceNotFoundException.java
-│   │   ├── DuplicateResourceException.java
-│   │   ├── ErrorResponse.java
-│   │   └── GlobalExceptionHandler.java
-│   ├── model/               # Entidades JPA
-│   │   ├── Cliente.java
-│   │   ├── Veiculo.java
-│   │   ├── PecaInsumo.java
-│   │   └── Servico.java
-│   ├── repository/          # Repositórios JPA
-│   │   ├── ClienteRepository.java
-│   │   ├── VeiculoRepository.java
-│   │   ├── PecaInsumoRepository.java
-│   │   └── ServicoRepository.java
-│   └── service/             # Lógica de negócio
-│       ├── ClienteService.java
-│       ├── VeiculoService.java
-│       ├── PecaInsumoService.java
-│       └── ServicoService.java
-└── TechChallengeApplication.java
-```
+Consulte também:
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Referência completa
+- **[API_EXAMPLES.http](API_EXAMPLES.http)** - Exemplos práticos
+- **[GESTAO_OS_GUIDE.md](GESTAO_OS_GUIDE.md)** - Guia de Gestão de OS
 
-## ✅ Validações Implementadas
+---
 
-### Cliente
-- Nome: 3-100 caracteres
-- CPF/CNPJ: 11 ou 14 dígitos numéricos
-- Contato: 8-100 caracteres
-- CPF/CNPJ único no sistema
+## 🔐 Autenticação
 
-### Veículo
-- Placa: formato ABC1234 ou ABC1D23
-- Marca: 2-50 caracteres
-- Modelo: 2-50 caracteres
-- Ano: 1900-2100
-- Placa única no sistema
-
-### Peça/Insumo
-- Nome: 3-100 caracteres
-- Descrição: até 500 caracteres
-- Preço: > 0, máx 8 dígitos inteiros e 2 decimais
-- Quantidade em estoque: >= 0
-
-### Serviço
-- Descrição: 5-200 caracteres
-- Preço: > 0, máx 8 dígitos inteiros e 2 decimais
-
-## 🚀 Fluxo Principal: Criação de Ordem de Serviço
-
-O sistema permite criar uma OS completa com um único endpoint:
+### 1. Obter Token JWT
 
 ```bash
-# 1. Primeiro, cadastre um cliente
-curl -X POST http://localhost:8080/api/clientes \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{"nome": "João Silva", "cpfCnpj": "12345678901", "contato": "joao@email.com"}'
+POST /api/auth/login
+Content-Type: application/json
 
-# 2. Cadastre serviços e peças (se ainda não existirem)
-curl -X POST http://localhost:8080/api/servicos \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{"descricao": "Troca de óleo e filtro", "preco": 150.00}'
-
-curl -X POST http://localhost:8080/api/pecas-insumos \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{"nome": "Filtro de Óleo", "descricao": "Original", "preco": 45.90, "quantidadeEstoque": 100}'
-
-# 3. Crie a Ordem de Serviço (fluxo completo automático)
-curl -X POST http://localhost:8080/api/ordens-servico \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{
-    "cpfCnpjCliente": "12345678901",
-    "veiculo": {
-      "placa": "ABC1234",
-      "marca": "Toyota",
-      "modelo": "Corolla",
-      "ano": 2020
-    },
-    "servicos": [{"servicoId": 1, "quantidade": 1}],
-    "pecas": [{"pecaInsumoId": 1, "quantidade": 2}],
-    "observacoes": "Revisão completa"
-  }'
+{
+  "username": "admin",
+  "password": "admin"
+}
 ```
 
-**O que acontece automaticamente:**
-1. ✅ Valida se o cliente existe
-2. ✅ Verifica se o veículo existe; se não, cadastra
-3. ✅ Valida se há estoque suficiente das peças
-4. ✅ Calcula o orçamento total
-5. ✅ Cria a OS com status RECEBIDA
-6. ✅ Baixa as peças do estoque
-7. ✅ Simula envio do orçamento (muda para AGUARDANDO_APROVACAO)
+**Resposta:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "type": "Bearer",
+  "username": "admin",
+  "expiresIn": 86400000
+}
+```
 
-## 🧪 Testando a API
+### 2. Usar o Token
 
-### Criar Cliente
+#### Via cURL:
 ```bash
-curl -X POST http://localhost:8080/api/clientes \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{"nome": "Maria Santos", "cpfCnpj": "98765432100", "contato": "maria@email.com"}'
+curl -H "Authorization: Bearer SEU_TOKEN_AQUI" \
+  http://localhost:8080/api/clientes
 ```
 
-### Criar Veículo
+#### Via Swagger UI:
+1. Clique no botão **"Authorize"** (🔓)
+2. Cole o token no campo
+3. Clique em **"Authorize"**
+4. Agora todos os endpoints protegidos funcionarão
+
+#### Via Postman/Insomnia:
+1. Aba **Authorization**
+2. Type: **Bearer Token**
+3. Cole o token
+
+### 3. Endpoints Públicos (sem JWT)
+
+- `POST /api/auth/login` - Login
+- `GET /api/ordens-servico/status/{id}?cpfCnpj=xxx` - Consulta pública
+
+---
+
+## 🧪 Testes
+
+### Executar Todos os Testes
+
 ```bash
-curl -X POST http://localhost:8080/api/veiculos \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{"placa": "XYZ5678", "marca": "Honda", "modelo": "Civic", "ano": 2023, "clienteId": 1}'
+# Com Maven Wrapper
+./mvnw test
+
+# Com Maven instalado
+mvn test
 ```
 
-### Criar Peça/Insumo
+### Executar Testes com Cobertura
+
 ```bash
-curl -X POST http://localhost:8080/api/pecas-insumos \
-  -u admin:admin \
-  -H "Content-Type: application/json" \
-  -d '{"nome": "Filtro de Ar", "descricao": "Filtro de ar original", "preco": 35.50, "quantidadeEstoque": 50}'
+./mvnw clean test jacoco:report
 ```
 
-### Atualizar Estoque
+**Relatório gerado em:** `target/site/jacoco/index.html`
+
+### Tipos de Testes
+
+1. **Testes Unitários** (`src/test/java/.../service/`)
+   - Testa lógica de negócio isoladamente
+   - Usa Mockito para mocks
+   - Rápidos e independentes
+
+2. **Testes de Integração** (`src/test/java/.../integration/`)
+   - Testa fluxo completo da API
+   - Usa Testcontainers (PostgreSQL real)
+   - Testa autenticação JWT
+   - Testa validações end-to-end
+
+### Cobertura de Código
+
+- **Target:** 80% de cobertura
+- **Plugin:** JaCoCo
+- Verificação automática no build
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+tech-challenge/
+├── src/
+│   ├── main/
+│   │   ├── java/com/techchallenge/
+│   │   │   ├── config/              # Configurações (OpenAPI)
+│   │   │   ├── controller/          # Camada de controle (REST)
+│   │   │   ├── domain/
+│   │   │   │   ├── dto/             # Data Transfer Objects
+│   │   │   │   ├── exception/       # Exceções customizadas
+│   │   │   │   ├── model/           # Entidades JPA
+│   │   │   │   ├── repository/      # Repositórios JPA
+│   │   │   │   └── service/         # Lógica de negócio
+│   │   │   ├── security/            # Segurança JWT
+│   │   │   └── TechChallengeApplication.java
+│   │   └── resources/
+│   │       ├── application.yml      # Configurações
+│   │       └── scripts/             # Scripts SQL
+│   └── test/
+│       ├── java/com/techchallenge/
+│       │   ├── service/             # Testes unitários
+│       │   └── integration/         # Testes de integração
+│       └── resources/
+│           └── application-test.yml # Config de testes
+├── Dockerfile                       # Imagem Docker
+├── docker-compose.yml               # Orquestração
+├── pom.xml                          # Dependências Maven
+└── README.md                        # Este arquivo
+```
+
+---
+
+## 🎯 Fluxo de Uso Típico
+
+### 1. Autenticação
 ```bash
-# Adicionar 20 unidades
-curl -X PATCH "http://localhost:8080/api/pecas-insumos/1/estoque?quantidadeAjuste=20" \
-  -u admin:admin
-
-# Remover 5 unidades
-curl -X PATCH "http://localhost:8080/api/pecas-insumos/1/estoque?quantidadeAjuste=-5" \
-  -u admin:admin
+POST /api/auth/login
+Body: {"username": "admin", "password": "admin"}
 ```
 
-### Listar Todos os Clientes
+### 2. Cadastrar Cliente
 ```bash
-curl -X GET http://localhost:8080/api/clientes \
-  -u admin:admin
+POST /api/clientes
+Header: Authorization: Bearer TOKEN
+Body: {
+  "nome": "João Silva",
+  "cpfCnpj": "12345678901",
+  "contato": "joao@email.com"
+}
 ```
 
-### Listar Veículos de um Cliente
+### 3. Cadastrar Peças e Serviços
 ```bash
-curl -X GET "http://localhost:8080/api/veiculos?clienteId=1" \
-  -u admin:admin
+POST /api/pecas-insumos
+POST /api/servicos
 ```
 
-## 🔧 Configurações Adicionais
+### 4. Criar Ordem de Serviço
+```bash
+POST /api/ordens-servico
+Body: {
+  "cpfCnpjCliente": "12345678901",
+  "veiculo": {...},
+  "servicos": [...],
+  "pecas": [...]
+}
+```
 
-### Logs SQL
-O sistema está configurado para mostrar as queries SQL no console:
+### 5. Cliente Consulta Status (Público)
+```bash
+GET /api/ordens-servico/status/1?cpfCnpj=12345678901
+# Não precisa de token JWT!
+```
+
+### 6. Gerenciar Status da OS
+```bash
+PATCH /api/ordens-servico/1/status
+Body: {
+  "novoStatus": "EM_EXECUCAO",
+  "observacao": "Cliente aprovou"
+}
+```
+
+---
+
+## 📊 Endpoints Principais
+
+| Método | Endpoint | Descrição | Auth |
+|--------|----------|-----------|------|
+| **Autenticação** |
+| POST | `/api/auth/login` | Login (obter JWT) | ❌ |
+| **Clientes** |
+| GET | `/api/clientes` | Listar clientes | ✅ |
+| POST | `/api/clientes` | Criar cliente | ✅ |
+| GET | `/api/clientes/{id}` | Buscar por ID | ✅ |
+| PUT | `/api/clientes/{id}` | Atualizar | ✅ |
+| DELETE | `/api/clientes/{id}` | Deletar | ✅ |
+| **Veículos** |
+| GET | `/api/veiculos` | Listar veículos | ✅ |
+| POST | `/api/veiculos` | Criar veículo | ✅ |
+| **Peças** |
+| GET | `/api/pecas-insumos` | Listar peças | ✅ |
+| POST | `/api/pecas-insumos` | Criar peça | ✅ |
+| PATCH | `/api/pecas-insumos/{id}/estoque` | Ajustar estoque | ✅ |
+| **Serviços** |
+| GET | `/api/servicos` | Listar serviços | ✅ |
+| POST | `/api/servicos` | Criar serviço | ✅ |
+| **Ordens de Serviço** |
+| POST | `/api/ordens-servico` | Criar OS | ✅ |
+| GET | `/api/ordens-servico` | Listar OSs | ✅ |
+| GET | `/api/ordens-servico/{id}` | Buscar por ID | ✅ |
+| PATCH | `/api/ordens-servico/{id}/status` | Alterar status | ✅ |
+| GET | `/api/ordens-servico/status/{id}` | Consulta pública | ❌ |
+| GET | `/api/ordens-servico/monitoramento/tempo-medio` | Estatísticas | ✅ |
+
+**Legenda:** ✅ Requer JWT | ❌ Público
+
+---
+
+## 🔧 Variáveis de Ambiente
+
+### Docker Compose
+
+Já configurado no `docker-compose.yml`. Para personalizar, edite o arquivo:
 
 ```yaml
-spring:
-  jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-
-logging:
-  level:
-    org.hibernate.SQL: DEBUG
+environment:
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tech_challenge
+  SPRING_DATASOURCE_USERNAME: postgres
+  SPRING_DATASOURCE_PASSWORD: 123456
+  JWT_SECRET: sua_chave_secreta_aqui
+  JWT_EXPIRATION: 86400000
 ```
 
-### Charset UTF-8
-Configurado para garantir suporte a caracteres especiais.
+### Execução Local
 
-## 📝 Notas de Desenvolvimento
+Configure no `application.yml` ou via variáveis de ambiente:
 
-### Abordagem PUT
-O sistema utiliza PUT para atualizações completas de recursos, exigindo que o cliente envie todos os campos obrigatórios. Esta abordagem foi escolhida por ser mais simples e previsível.
+```bash
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/tech_challenge
+export SPRING_DATASOURCE_USERNAME=postgres
+export SPRING_DATASOURCE_PASSWORD=123456
+export JWT_SECRET=sua_chave_secreta
+export JWT_EXPIRATION=86400000
+```
 
-A única exceção é o endpoint PATCH para atualização de estoque de peças, que permite ajustes incrementais.
+---
 
-### Transações
-Todas as operações de escrita (criar, atualizar, deletar) são transacionais, garantindo consistência dos dados.
+## 🐛 Troubleshooting
 
-### Cascata
-Ao deletar um cliente, seus veículos são deletados automaticamente devido à configuração `orphanRemoval=true`.
+### Problema: Porta 8080 já em uso
+```bash
+# Mude a porta no docker-compose.yml:
+ports:
+  - "8081:8080"  # Host:Container
+```
+
+### Problema: Erro de conexão com banco
+```bash
+# Verifique se o PostgreSQL está rodando:
+docker-compose ps
+
+# Veja logs do banco:
+docker-compose logs postgres
+
+# Reinicie os containers:
+docker-compose restart
+```
+
+### Problema: Testes falhando
+```bash
+# Certifique-se que o Docker está rodando (para Testcontainers)
+docker info
+
+# Execute testes individualmente:
+./mvnw test -Dtest=AuthControllerIntegrationTest
+```
+
+### Problema: Token JWT inválido
+- Verifique se o token não expirou (24 horas)
+- Faça login novamente para obter novo token
+- Certifique-se de usar `Bearer TOKEN` no header
+
+---
+
+## 📖 Documentação Adicional
+
+- **[GESTAO_OS_GUIDE.md](GESTAO_OS_GUIDE.md)** - Guia completo de Gestão de OS
+- **[TESTE_RAPIDO_GESTAO_OS.md](TESTE_RAPIDO_GESTAO_OS.md)** - Testes práticos
+- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Referência da API
+- **[API_EXAMPLES.http](API_EXAMPLES.http)** - Exemplos HTTP
+- **[CHANGELOG_GESTAO_OS.md](CHANGELOG_GESTAO_OS.md)** - Histórico de mudanças
+- **[RESUMO_IMPLEMENTACAO.md](RESUMO_IMPLEMENTACAO.md)** - Resumo técnico
+
+---
 
 ## 🤝 Contribuindo
 
@@ -318,21 +547,39 @@ Ao deletar um cliente, seus veículos são deletados automaticamente devido à c
 4. Push para a branch (`git push origin feature/MinhaFeature`)
 5. Abra um Pull Request
 
+---
+
 ## 📄 Licença
 
-Este projeto é um trabalho acadêmico desenvolvido para fins educacionais.
-
-## 👥 Autores
-
-Desenvolvido como parte do Tech Challenge.
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ---
 
-**Observação**: Este é um projeto em desenvolvimento. Para uso em produção, considere:
-- Implementar autenticação JWT
-- Adicionar testes unitários e de integração
-- Implementar cache
-- Adicionar documentação Swagger/OpenAPI
-- Configurar profiles (dev, test, prod)
-- Implementar CI/CD
+## 👥 Autores
 
+- **Tech Challenge Team** - [GitHub](https://github.com/seu-usuario)
+
+---
+
+## 🙏 Agradecimentos
+
+- Spring Boot Team
+- PostgreSQL Community
+- Docker Community
+- Testcontainers Team
+
+---
+
+## 📞 Suporte
+
+Para dúvidas ou problemas:
+
+1. Consulte a [documentação](#documentação-da-api)
+2. Veja o [troubleshooting](#-troubleshooting)
+3. Abra uma [issue](https://github.com/seu-usuario/tech-challenge/issues)
+
+---
+
+**⭐ Se este projeto foi útil, deixe uma estrela!**
+
+**🚀 Desenvolvido com dedicação para o Tech Challenge**

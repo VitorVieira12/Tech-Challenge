@@ -3,6 +3,7 @@ package com.techchallenge.controller;
 import com.techchallenge.domain.dto.PecaInsumoDTO;
 import com.techchallenge.domain.dto.PecaInsumoResponseDTO;
 import com.techchallenge.domain.service.PecaInsumoService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/pecas-insumos")
 @RequiredArgsConstructor
+@Tag(name = "Peças e Insumos", description = "CRUD de peças e insumos com gestão de estoque")
 public class PecaInsumoController {
 
     private final PecaInsumoService pecaInsumoService;

@@ -32,3 +32,6 @@ public interface PecaInsumoRepository extends JpaRepository<PecaInsumo, Long> {
 
 
 
+
+
+
