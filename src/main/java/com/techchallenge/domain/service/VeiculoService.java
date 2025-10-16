@@ -14,9 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Serviço para gerenciamento de Veículos.
- */
 @Service
 @RequiredArgsConstructor
 public class VeiculoService {
@@ -26,12 +23,10 @@ public class VeiculoService {
 
     @Transactional
     public VeiculoResponseDTO criar(VeiculoDTO dto) {
-        // Verifica se já existe veículo com a mesma placa
         if (veiculoRepository.existsByPlaca(dto.getPlaca())) {
             throw new DuplicateResourceException("Já existe um veículo cadastrado com esta placa");
         }
 
-        // Busca o cliente
         Cliente cliente = clienteService.buscarEntidadePorId(dto.getClienteId());
 
         Veiculo veiculo = new Veiculo();
@@ -72,13 +67,11 @@ public class VeiculoService {
         Veiculo veiculo = veiculoRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Veículo", id));
 
-        // Verifica se a placa já está em uso por outro veículo
         if (!veiculo.getPlaca().equals(dto.getPlaca().toUpperCase()) && 
             veiculoRepository.existsByPlaca(dto.getPlaca())) {
             throw new DuplicateResourceException("Já existe um veículo cadastrado com esta placa");
         }
 
-        // Busca o cliente
         Cliente cliente = clienteService.buscarEntidadePorId(dto.getClienteId());
 
         veiculo.setPlaca(dto.getPlaca().toUpperCase());

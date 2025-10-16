@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Entidade que representa Peças e Insumos utilizados nos serviços da oficina.
- * Inclui controle de estoque.
- */
 @Entity
 @Table(name = "pecas_insumos")
 @Data
@@ -31,10 +27,6 @@ public class PecaInsumo {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal preco;
 
-    /**
-     * Quantidade disponível em estoque.
-     * Requisito: controle de estoque de peças e insumos.
-     */
     @Column(nullable = false)
     private Integer quantidadeEstoque;
 }

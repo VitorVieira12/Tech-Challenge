@@ -6,9 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO para item de peça/insumo na criação da OS.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

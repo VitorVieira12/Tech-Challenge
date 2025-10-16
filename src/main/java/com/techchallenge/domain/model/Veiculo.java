@@ -5,10 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Entidade que representa um Veículo cadastrado na oficina.
- * Cada veículo pertence a um único cliente.
- */
 @Entity
 @Table(name = "veiculos")
 @Data
@@ -32,9 +28,6 @@ public class Veiculo {
     @Column(nullable = false)
     private Integer ano;
 
-    /**
-     * Relacionamento Many-to-One: Vários veículos podem pertencer a um cliente.
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;

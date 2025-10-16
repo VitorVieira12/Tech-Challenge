@@ -6,10 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO para consulta pública de OS pelo cliente.
- * Requer CPF/CNPJ + ID da OS para autenticação.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

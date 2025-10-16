@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * DTO para criação de uma nova Ordem de Serviço.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

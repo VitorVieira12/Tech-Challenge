@@ -10,9 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controlador REST para autenticação.
- */
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -21,16 +18,6 @@ public class AuthController {
 
     private final AuthService authService;
 
-    /**
-     * Endpoint de login.
-     * Autentica um usuário e retorna um token JWT.
-     * 
-     * POST /api/auth/login
-     * 
-     * Credenciais padrão (MVP):
-     * - Username: admin
-     * - Password: admin
-     */
     @PostMapping("/login")
     @Operation(summary = "Login", description = "Autentica um usuário e retorna um token JWT")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {

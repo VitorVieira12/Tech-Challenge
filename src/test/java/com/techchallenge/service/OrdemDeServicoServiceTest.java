@@ -22,10 +22,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * Testes unitários para OrdemDeServicoService.
- * Testa os fluxos críticos de criação de OS e gestão de estoque.
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("OrdemDeServicoService - Testes Unitários")
 class OrdemDeServicoServiceTest {
@@ -55,7 +51,6 @@ class OrdemDeServicoServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Setup de dados comuns para os testes
         cliente = new Cliente();
         cliente.setId(1L);
         cliente.setNome("João Silva");
@@ -85,7 +80,6 @@ class OrdemDeServicoServiceTest {
     @Test
     @DisplayName("Deve criar OS com sucesso quando todos os dados são válidos")
     void deveCriarOSComSucesso() {
-        // Arrange
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         
         when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.of(cliente));
@@ -98,10 +92,8 @@ class OrdemDeServicoServiceTest {
             return os;
         });
 
-        // Act
         OrdemDeServicoResponseDTO result = ordemDeServicoService.criarOS(input);
 
-        // Assert
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
@@ -112,20 +104,17 @@ class OrdemDeServicoServiceTest {
         verify(servicoRepository).findById(1L);
         verify(pecaInsumoRepository).findById(1L);
         verify(ordemDeServicoRepository, times(2)).save(any(OrdemDeServico.class)); // Uma vez na criação, outra no envio
-        verify(pecaInsumoRepository).save(peca); // Verifica que o estoque foi atualizado
-        
-        // Verifica se o estoque foi baixado
+        verify(pecaInsumoRepository).save(peca);
+
         assertThat(peca.getQuantidadeEstoque()).isEqualTo(98); // 100 - 2
     }
 
     @Test
     @DisplayName("Deve lançar exceção quando cliente não existe")
     void deveLancarExcecaoQuandoClienteNaoExiste() {
-        // Arrange
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> ordemDeServicoService.criarOS(input))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Cliente com CPF/CNPJ 12345678901 não encontrado");
@@ -137,16 +126,14 @@ class OrdemDeServicoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando estoque é insuficiente")
     void deveLancarExcecaoQuandoEstoqueInsuficiente() {
-        // Arrange
         OrdemDeServicoInputDTO input = criarInputDTOValido();
-        peca.setQuantidadeEstoque(1); // Estoque menor que a quantidade solicitada (2)
+        peca.setQuantidadeEstoque(1);
         
         when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.of(cliente));
         when(veiculoRepository.findByPlaca("ABC1234")).thenReturn(Optional.of(veiculo));
         when(servicoRepository.findById(1L)).thenReturn(Optional.of(servico));
         when(pecaInsumoRepository.findById(1L)).thenReturn(Optional.of(peca));
 
-        // Act & Assert
         assertThatThrownBy(() -> ordemDeServicoService.criarOS(input))
                 .isInstanceOf(EstoqueInsuficienteException.class);
         
@@ -160,7 +147,6 @@ class OrdemDeServicoServiceTest {
     @Test
     @DisplayName("Deve atualizar status com sucesso quando transição é válida")
     void deveAtualizarStatusComSucesso() {
-        // Arrange
         OrdemDeServico os = new OrdemDeServico();
         os.setId(1L);
         os.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
@@ -175,10 +161,8 @@ class OrdemDeServicoServiceTest {
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
         when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenReturn(os);
 
-        // Act
         OrdemDeServicoResponseDTO result = ordemDeServicoService.atualizarStatus(1L, statusUpdate);
 
-        // Assert
         assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
         assertThat(os.getDataInicioExecucao()).isNotNull();
         verify(ordemDeServicoRepository).findById(1L);
@@ -188,7 +172,6 @@ class OrdemDeServicoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando transição de status é inválida")
     void deveLancarExcecaoQuandoTransicaoInvalida() {
-        // Arrange
         OrdemDeServico os = new OrdemDeServico();
         os.setId(1L);
         os.setStatus(StatusOrdemServico.FINALIZADA);
@@ -200,7 +183,6 @@ class OrdemDeServicoServiceTest {
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
 
-        // Act & Assert
         assertThatThrownBy(() -> ordemDeServicoService.atualizarStatus(1L, statusUpdate))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Transição de status inválida");
@@ -212,7 +194,6 @@ class OrdemDeServicoServiceTest {
     @Test
     @DisplayName("Deve permitir consulta pública com CPF correto")
     void devePermitirConsultaPublicaComCPFCorreto() {
-        // Arrange
         OrdemDeServico os = new OrdemDeServico();
         os.setId(1L);
         os.setStatus(StatusOrdemServico.EM_EXECUCAO);
@@ -222,10 +203,8 @@ class OrdemDeServicoServiceTest {
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
 
-        // Act
         OrdemDeServicoPublicDTO result = ordemDeServicoService.consultarStatusPublico(1L, "12345678901");
 
-        // Assert
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
@@ -236,7 +215,6 @@ class OrdemDeServicoServiceTest {
     @Test
     @DisplayName("Deve bloquear consulta pública com CPF incorreto")
     void deveBloquearConsultaPublicaComCPFIncorreto() {
-        // Arrange
         OrdemDeServico os = new OrdemDeServico();
         os.setId(1L);
         os.setCliente(cliente);
@@ -244,14 +222,12 @@ class OrdemDeServicoServiceTest {
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
 
-        // Act & Assert
         assertThatThrownBy(() -> ordemDeServicoService.consultarStatusPublico(1L, "99999999999"))
                 .isInstanceOf(ResourceNotFoundException.class);
         
         verify(ordemDeServicoRepository).findById(1L);
     }
 
-    // Helper methods
     private OrdemDeServicoInputDTO criarInputDTOValido() {
         OrdemDeServicoInputDTO input = new OrdemDeServicoInputDTO();
         input.setCpfCnpjCliente("12345678901");

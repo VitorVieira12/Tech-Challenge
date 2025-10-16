@@ -12,9 +12,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Handler global para tratamento de exceções.
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

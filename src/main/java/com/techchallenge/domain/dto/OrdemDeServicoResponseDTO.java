@@ -11,9 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * DTO de resposta para Ordem de Serviço.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

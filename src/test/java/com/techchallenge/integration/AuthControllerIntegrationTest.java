@@ -16,10 +16,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Testes de integração para AuthController.
- * Testa o fluxo completo de autenticação JWT.
- */
 @AutoConfigureMockMvc
 @DisplayName("AuthController - Testes de Integração")
 class AuthControllerIntegrationTest extends BaseIntegrationTest {
@@ -33,10 +29,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve autenticar com sucesso com credenciais válidas")
     void deveAutenticarComSucessoComCredenciaisValidas() throws Exception {
-        // Arrange
         LoginRequestDTO loginRequest = new LoginRequestDTO("admin", "admin");
 
-        // Act & Assert
         MvcResult result = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
@@ -47,7 +41,6 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.expiresIn").exists())
                 .andReturn();
 
-        // Verifica se o token foi gerado
         String responseBody = result.getResponse().getContentAsString();
         LoginResponseDTO response = objectMapper.readValue(responseBody, LoginResponseDTO.class);
         
@@ -58,10 +51,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve retornar 401 com credenciais inválidas")
     void deveRetornar401ComCredenciaisInvalidas() throws Exception {
-        // Arrange
         LoginRequestDTO loginRequest = new LoginRequestDTO("admin", "senha_errada");
 
-        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
@@ -71,10 +62,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve retornar 400 quando username está vazio")
     void deveRetornar400QuandoUsernameVazio() throws Exception {
-        // Arrange
         LoginRequestDTO loginRequest = new LoginRequestDTO("", "admin");
 
-        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
@@ -84,10 +73,8 @@ class AuthControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve retornar 400 quando password está vazio")
     void deveRetornar400QuandoPasswordVazio() throws Exception {
-        // Arrange
         LoginRequestDTO loginRequest = new LoginRequestDTO("admin", "");
 
-        // Act & Assert
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))

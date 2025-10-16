@@ -7,10 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Entidade associativa que representa uma peça/insumo dentro de uma Ordem de Serviço.
- * Armazena quantidade e preço no momento da criação da OS (histórico).
- */
 @Entity
 @Table(name = "ordem_servico_pecas")
 @Data
@@ -30,16 +26,9 @@ public class OrdemServicoPeca {
     @JoinColumn(name = "peca_insumo_id", nullable = false)
     private PecaInsumo pecaInsumo;
 
-    /**
-     * Preço da peça no momento da criação da OS.
-     * Mantém histórico mesmo que o preço da peça mude posteriormente.
-     */
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal precoUnitario;
 
-    /**
-     * Quantidade da peça utilizada.
-     */
     @Column(nullable = false)
     private Integer quantidade;
 

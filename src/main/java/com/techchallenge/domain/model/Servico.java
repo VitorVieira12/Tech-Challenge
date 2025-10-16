@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * Entidade que representa os Serviços oferecidos pela oficina.
- */
 @Entity
 @Table(name = "servicos")
 @Data

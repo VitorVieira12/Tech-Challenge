@@ -5,10 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO para informações do veículo na criação da OS.
- * Pode ser usado quando o veículo ainda não está cadastrado.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

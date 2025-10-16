@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * DTO de resposta para Peça/Insumo.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

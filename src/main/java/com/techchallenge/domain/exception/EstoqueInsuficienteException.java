@@ -5,9 +5,6 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Exceção lançada quando há tentativa de usar peças sem estoque suficiente.
- */
 @Getter
 public class EstoqueInsuficienteException extends RuntimeException {
     

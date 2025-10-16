@@ -13,12 +13,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Serviço personalizado para carregar detalhes de usuários.
- * 
- * Para o MVP, usa usuários em memória.
- * Em produção, este serviço deveria buscar usuários do banco de dados.
- */
 @Service
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
@@ -26,8 +20,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final Map<String, UserDetails> users = new HashMap<>();
 
     public CustomUserDetailsService(PasswordEncoder passwordEncoder) {
-        // Para o MVP, criar usuário admin em memória
-        // Senha: admin
         UserDetails admin = User.builder()
                 .username("admin")
                 .password(passwordEncoder.encode("admin"))

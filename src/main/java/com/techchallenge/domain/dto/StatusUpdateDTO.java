@@ -6,9 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO para atualização de status de uma Ordem de Serviço.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -24,10 +24,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Configuração de segurança da aplicação.
- * Define regras de autenticação, autorização e integração com JWT.
- */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -38,26 +34,19 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * Configura a cadeia de filtros de segurança.
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints públicos
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/ordens-servico/status/**").permitAll()
-                        
-                        // Swagger/OpenAPI
+
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                        
-                        // Actuator (se configurado)
+
                         .requestMatchers("/actuator/**").permitAll()
-                        
-                        // Todos os outros endpoints requerem autenticação
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -69,9 +58,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /**
-     * Configuração do provider de autenticação.
-     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -80,21 +66,15 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    /**
-     * Bean do AuthenticationManager.
-     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    /**
-     * Configuração de CORS.
-     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*")); // Em produção, especificar origens permitidas
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization"));

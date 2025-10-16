@@ -13,9 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Serviço para gerenciamento de Clientes.
- */
 @Service
 @RequiredArgsConstructor
 public class ClienteService {
@@ -24,7 +21,6 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponseDTO criar(ClienteDTO dto) {
-        // Verifica se já existe cliente com o mesmo CPF/CNPJ
         if (clienteRepository.existsByCpfCnpj(dto.getCpfCnpj())) {
             throw new DuplicateResourceException("Já existe um cliente cadastrado com este CPF/CNPJ");
         }
@@ -57,7 +53,6 @@ public class ClienteService {
         Cliente cliente = clienteRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Cliente", id));
 
-        // Verifica se o CPF/CNPJ já está em uso por outro cliente
         if (!cliente.getCpfCnpj().equals(dto.getCpfCnpj()) && 
             clienteRepository.existsByCpfCnpj(dto.getCpfCnpj())) {
             throw new DuplicateResourceException("Já existe um cliente cadastrado com este CPF/CNPJ");

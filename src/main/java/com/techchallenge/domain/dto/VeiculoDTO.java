@@ -5,9 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO para criação e atualização de Veículo.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

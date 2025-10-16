@@ -12,9 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Serviço para gerenciamento de Serviços.
- */
 @Service
 @RequiredArgsConstructor
 public class ServicoService {

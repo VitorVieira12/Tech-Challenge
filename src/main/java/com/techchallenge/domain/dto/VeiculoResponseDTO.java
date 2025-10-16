@@ -5,9 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO de resposta para Veículo.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

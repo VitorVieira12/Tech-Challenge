@@ -22,10 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Testes de integração para OrdemDeServicoController.
- * Testa o fluxo completo de criação, consulta e gestão de OSs.
- */
 @AutoConfigureMockMvc
 @DisplayName("OrdemDeServicoController - Testes de Integração")
 class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
@@ -49,7 +45,6 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // Obter token JWT
         LoginRequestDTO loginRequest = new LoginRequestDTO("admin", "admin");
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -61,17 +56,14 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
         LoginResponseDTO response = objectMapper.readValue(loginResponse, LoginResponseDTO.class);
         jwtToken = response.getToken();
 
-        // Criar dados de teste
         criarDadosDeTeste();
     }
 
     @Test
     @DisplayName("Deve criar OS com sucesso")
     void deveCriarOSComSucesso() throws Exception {
-        // Arrange
         OrdemDeServicoInputDTO input = criarInputDTOValido();
 
-        // Act & Assert
         mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + jwtToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,10 +78,8 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve bloquear criação de OS sem autenticação")
     void deveBloquerarCriacaoSemAutenticacao() throws Exception {
-        // Arrange
         OrdemDeServicoInputDTO input = criarInputDTOValido();
 
-        // Act & Assert
         mockMvc.perform(post("/api/ordens-servico")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(input)))
@@ -99,7 +89,6 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve permitir consulta pública com CPF correto")
     void devePermitirConsultaPublicaComCPFCorreto() throws Exception {
-        // Arrange - Criar OS primeiro
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         MvcResult createResult = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + jwtToken)
@@ -111,7 +100,6 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
         String createResponse = createResult.getResponse().getContentAsString();
         OrdemDeServicoResponseDTO createdOS = objectMapper.readValue(createResponse, OrdemDeServicoResponseDTO.class);
 
-        // Act & Assert - Consulta pública SEM token JWT
         mockMvc.perform(get("/api/ordens-servico/status/" + createdOS.getId())
                         .param("cpfCnpj", "12345678901"))
                 .andExpect(status().isOk())
@@ -123,7 +111,6 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve bloquear consulta pública com CPF incorreto")
     void deveBloquerConsultaPublicaComCPFIncorreto() throws Exception {
-        // Arrange - Criar OS primeiro
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         MvcResult createResult = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + jwtToken)
@@ -135,7 +122,6 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
         String createResponse = createResult.getResponse().getContentAsString();
         OrdemDeServicoResponseDTO createdOS = objectMapper.readValue(createResponse, OrdemDeServicoResponseDTO.class);
 
-        // Act & Assert
         mockMvc.perform(get("/api/ordens-servico/status/" + createdOS.getId())
                         .param("cpfCnpj", "99999999999"))
                 .andExpect(status().isNotFound());
@@ -144,7 +130,6 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve atualizar status da OS com sucesso")
     void deveAtualizarStatusComSucesso() throws Exception {
-        // Arrange - Criar OS primeiro
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         MvcResult createResult = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + jwtToken)
@@ -160,7 +145,6 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
         statusUpdate.setNovoStatus(StatusOrdemServico.EM_EXECUCAO);
         statusUpdate.setObservacao("Cliente aprovou");
 
-        // Act & Assert
         mockMvc.perform(patch("/api/ordens-servico/" + createdOS.getId() + "/status")
                         .header("Authorization", "Bearer " + jwtToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -170,22 +154,18 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.dataInicioExecucao").exists());
     }
 
-    // Helper methods
     private void criarDadosDeTeste() {
-        // Criar cliente
         Cliente cliente = new Cliente();
         cliente.setNome("João Silva");
         cliente.setCpfCnpj("12345678901");
         cliente.setContato("joao@email.com");
         clienteRepository.save(cliente);
 
-        // Criar serviço
         Servico servico = new Servico();
         servico.setDescricao("Troca de óleo");
         servico.setPreco(new BigDecimal("150.00"));
         servicoRepository.save(servico);
 
-        // Criar peça
         PecaInsumo peca = new PecaInsumo();
         peca.setNome("Filtro de óleo");
         peca.setPreco(new BigDecimal("45.90"));

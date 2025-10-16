@@ -11,10 +11,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * DTO público para consulta de OS pelo cliente.
- * Contém apenas informações essenciais e seguras.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-/**
- * DTO para criação e atualização de Peça/Insumo.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
