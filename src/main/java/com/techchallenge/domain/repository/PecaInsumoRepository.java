@@ -15,9 +15,3 @@ public interface PecaInsumoRepository extends JpaRepository<PecaInsumo, Long> {
     @Query("SELECT p FROM PecaInsumo p WHERE LOWER(p.nome) LIKE LOWER(CONCAT('%', :nome, '%'))")
     List<PecaInsumo> findByNomeContainingIgnoreCase(String nome);
 }
-
-
-
-
-
-

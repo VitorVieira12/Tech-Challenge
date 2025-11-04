@@ -25,9 +25,3 @@ public interface OrdemDeServicoRepository extends JpaRepository<OrdemDeServico, 
     @Query("SELECT COUNT(os) FROM OrdemDeServico os WHERE os.status = :status")
     Long countByStatus(StatusOrdemServico status);
 }
-
-
-
-
-
-
