@@ -3,6 +3,7 @@ package com.techchallenge.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techchallenge.domain.dto.LoginRequestDTO;
 import com.techchallenge.domain.dto.LoginResponseDTO;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Disabled("Requer Docker/Testcontainers - Execute com: mvn verify -P integration")
 @AutoConfigureMockMvc
 @DisplayName("AuthController - Testes de Integração")
 class AuthControllerIntegrationTest extends BaseIntegrationTest {

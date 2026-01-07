@@ -23,7 +23,7 @@ public class PecaInsumoResponseDTO {
             pecaInsumo.getId(),
             pecaInsumo.getNome(),
             pecaInsumo.getDescricao(),
-            pecaInsumo.getPreco(),
+            pecaInsumo.getPreco().getValor(),
             pecaInsumo.getQuantidadeEstoque()
         );
     }

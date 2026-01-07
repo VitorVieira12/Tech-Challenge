@@ -19,8 +19,8 @@ public class ClienteResponseDTO {
         return new ClienteResponseDTO(
             cliente.getId(),
             cliente.getNome(),
-            cliente.getCpfCnpj(),
-            cliente.getContato()
+            cliente.getCpfCnpj().getValor(),
+            cliente.getContato().getValor()
         );
     }
 }

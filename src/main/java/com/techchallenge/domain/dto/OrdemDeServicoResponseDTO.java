@@ -39,12 +39,12 @@ public class OrdemDeServicoResponseDTO {
             os.getDataInicioExecucao(),
             os.getDataFinalizacao(),
             os.getDataEntrega(),
-            os.getValorTotalOrcamento(),
+            os.getValorTotalOrcamento().getValor(),
             os.getStatus(),
             os.getCliente().getId(),
             os.getCliente().getNome(),
             os.getVeiculo().getId(),
-            os.getVeiculo().getPlaca(),
+            os.getVeiculo().getPlaca().getValor(),
             os.getVeiculo().getMarca() + " " + os.getVeiculo().getModelo(),
             os.getItensServico().stream()
                 .map(ItemServicoResponseDTO::fromEntity)
@@ -73,8 +73,8 @@ public class OrdemDeServicoResponseDTO {
                 item.getServico().getId(),
                 item.getServico().getDescricao(),
                 item.getQuantidade(),
-                item.getPrecoUnitario(),
-                item.getSubtotal()
+                item.getPrecoUnitario().getValor(),
+                item.getSubtotal().getValor()
             );
         }
     }
@@ -96,8 +96,8 @@ public class OrdemDeServicoResponseDTO {
                 item.getPecaInsumo().getId(),
                 item.getPecaInsumo().getNome(),
                 item.getQuantidade(),
-                item.getPrecoUnitario(),
-                item.getSubtotal()
+                item.getPrecoUnitario().getValor(),
+                item.getSubtotal().getValor()
             );
         }
     }

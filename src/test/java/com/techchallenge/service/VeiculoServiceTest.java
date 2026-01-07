@@ -9,6 +9,7 @@ import com.techchallenge.domain.model.Veiculo;
 import com.techchallenge.domain.repository.VeiculoRepository;
 import com.techchallenge.domain.service.ClienteService;
 import com.techchallenge.domain.service.VeiculoService;
+import com.techchallenge.domain.valueobject.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,8 +48,8 @@ class VeiculoServiceTest {
         cliente = new Cliente();
         cliente.setId(1L);
         cliente.setNome("João Silva");
-        cliente.setCpfCnpj("12345678901");
-        cliente.setContato("joao@email.com");
+        cliente.setCpfCnpj(new CpfCnpj("11144477735"));
+        cliente.setContato(new Contato("joao@email.com"));
 
         veiculoDTO = new VeiculoDTO();
         veiculoDTO.setPlaca("ABC1234");
@@ -59,17 +60,17 @@ class VeiculoServiceTest {
 
         veiculo = new Veiculo();
         veiculo.setId(1L);
-        veiculo.setPlaca("ABC1234");
+        veiculo.setPlaca(new Placa("ABC1234"));
         veiculo.setMarca("Toyota");
         veiculo.setModelo("Corolla");
-        veiculo.setAno(2020);
+        veiculo.setAno(new AnoVeiculo(2020));
         veiculo.setCliente(cliente);
     }
 
     @Test
     @DisplayName("Deve criar veículo com sucesso quando dados são válidos")
     void deveCriarVeiculoComSucesso() {
-        when(veiculoRepository.existsByPlaca("ABC1234")).thenReturn(false);
+        when(veiculoRepository.existsByPlacaValor("ABC1234")).thenReturn(false);
         when(clienteService.buscarEntidadePorId(1L)).thenReturn(cliente);
         when(veiculoRepository.save(any(Veiculo.class))).thenReturn(veiculo);
 
@@ -82,7 +83,7 @@ class VeiculoServiceTest {
         assertThat(result.getModelo()).isEqualTo("Corolla");
         assertThat(result.getAno()).isEqualTo(2020);
         
-        verify(veiculoRepository).existsByPlaca("ABC1234");
+        verify(veiculoRepository).existsByPlacaValor("ABC1234");
         verify(clienteService).buscarEntidadePorId(1L);
         verify(veiculoRepository).save(any(Veiculo.class));
     }
@@ -92,11 +93,11 @@ class VeiculoServiceTest {
     void deveConverterPlacaParaMaiusculoAoCriar() {
         veiculoDTO.setPlaca("abc1234");
         
-        when(veiculoRepository.existsByPlaca("abc1234")).thenReturn(false);
+        when(veiculoRepository.existsByPlacaValor("ABC1234")).thenReturn(false);
         when(clienteService.buscarEntidadePorId(1L)).thenReturn(cliente);
         when(veiculoRepository.save(any(Veiculo.class))).thenAnswer(invocation -> {
             Veiculo v = invocation.getArgument(0);
-            assertThat(v.getPlaca()).isEqualTo("ABC1234");
+            assertThat(v.getPlaca().getValor()).isEqualTo("ABC1234");
             return veiculo;
         });
 
@@ -108,13 +109,13 @@ class VeiculoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando placa já existe")
     void deveLancarExcecaoQuandoPlacaJaExiste() {
-        when(veiculoRepository.existsByPlaca("ABC1234")).thenReturn(true);
+        when(veiculoRepository.existsByPlacaValor("ABC1234")).thenReturn(true);
 
         assertThatThrownBy(() -> veiculoService.criar(veiculoDTO))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("Já existe um veículo cadastrado com esta placa");
         
-        verify(veiculoRepository).existsByPlaca("ABC1234");
+        verify(veiculoRepository).existsByPlacaValor("ABC1234");
         verify(clienteService, never()).buscarEntidadePorId(any());
         verify(veiculoRepository, never()).save(any());
     }
@@ -122,14 +123,14 @@ class VeiculoServiceTest {
     @Test
     @DisplayName("Deve lançar exceção quando cliente não existe")
     void deveLancarExcecaoQuandoClienteNaoExiste() {
-        when(veiculoRepository.existsByPlaca("ABC1234")).thenReturn(false);
+        when(veiculoRepository.existsByPlacaValor("ABC1234")).thenReturn(false);
         when(clienteService.buscarEntidadePorId(1L))
                 .thenThrow(new ResourceNotFoundException("Cliente", 1L));
 
         assertThatThrownBy(() -> veiculoService.criar(veiculoDTO))
                 .isInstanceOf(ResourceNotFoundException.class);
         
-        verify(veiculoRepository).existsByPlaca("ABC1234");
+        verify(veiculoRepository).existsByPlacaValor("ABC1234");
         verify(clienteService).buscarEntidadePorId(1L);
         verify(veiculoRepository, never()).save(any());
     }
@@ -164,10 +165,10 @@ class VeiculoServiceTest {
     void deveListarTodosOsVeiculos() {
         Veiculo veiculo2 = new Veiculo();
         veiculo2.setId(2L);
-        veiculo2.setPlaca("XYZ5678");
+        veiculo2.setPlaca(new Placa("XYZ5678"));
         veiculo2.setMarca("Honda");
         veiculo2.setModelo("Civic");
-        veiculo2.setAno(2021);
+        veiculo2.setAno(new AnoVeiculo(2021));
         veiculo2.setCliente(cliente);
 
         when(veiculoRepository.findAll()).thenReturn(Arrays.asList(veiculo, veiculo2));
@@ -229,14 +230,14 @@ class VeiculoServiceTest {
         atualizacaoDTO.setClienteId(1L);
 
         when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
-        when(veiculoRepository.existsByPlaca("XYZ5678")).thenReturn(true);
+        when(veiculoRepository.existsByPlacaValor("XYZ5678")).thenReturn(true);
 
         assertThatThrownBy(() -> veiculoService.atualizar(1L, atualizacaoDTO))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("Já existe um veículo cadastrado com esta placa");
         
         verify(veiculoRepository).findById(1L);
-        verify(veiculoRepository).existsByPlaca("XYZ5678");
+        verify(veiculoRepository).existsByPlacaValor("XYZ5678");
         verify(veiculoRepository, never()).save(any());
     }
 

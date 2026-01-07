@@ -6,6 +6,7 @@ import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.PecaInsumo;
 import com.techchallenge.domain.repository.PecaInsumoRepository;
 import com.techchallenge.domain.service.PecaInsumoService;
+import com.techchallenge.domain.valueobject.ValorMonetario;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,7 @@ class PecaInsumoServiceTest {
         pecaInsumo.setId(1L);
         pecaInsumo.setNome("Filtro de óleo");
         pecaInsumo.setDescricao("Filtro de óleo para motor");
-        pecaInsumo.setPreco(new BigDecimal("45.90"));
+        pecaInsumo.setPreco(new ValorMonetario(new BigDecimal("45.90")));
         pecaInsumo.setQuantidadeEstoque(100);
     }
 
@@ -100,7 +101,7 @@ class PecaInsumoServiceTest {
         peca2.setId(2L);
         peca2.setNome("Pastilha de freio");
         peca2.setDescricao("Pastilha de freio dianteira");
-        peca2.setPreco(new BigDecimal("120.00"));
+        peca2.setPreco(new ValorMonetario(new BigDecimal("120.00")));
         peca2.setQuantidadeEstoque(50);
 
         when(pecaInsumoRepository.findAll()).thenReturn(Arrays.asList(pecaInsumo, peca2));

@@ -5,6 +5,7 @@ import com.techchallenge.domain.dto.PecaInsumoResponseDTO;
 import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.PecaInsumo;
 import com.techchallenge.domain.repository.PecaInsumoRepository;
+import com.techchallenge.domain.valueobject.ValorMonetario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,7 @@ public class PecaInsumoService {
         PecaInsumo pecaInsumo = new PecaInsumo();
         pecaInsumo.setNome(dto.getNome());
         pecaInsumo.setDescricao(dto.getDescricao());
-        pecaInsumo.setPreco(dto.getPreco());
+        pecaInsumo.setPreco(new ValorMonetario(dto.getPreco()));
         pecaInsumo.setQuantidadeEstoque(dto.getQuantidadeEstoque());
 
         PecaInsumo pecaSalva = pecaInsumoRepository.save(pecaInsumo);
@@ -51,7 +52,7 @@ public class PecaInsumoService {
 
         pecaInsumo.setNome(dto.getNome());
         pecaInsumo.setDescricao(dto.getDescricao());
-        pecaInsumo.setPreco(dto.getPreco());
+        pecaInsumo.setPreco(new ValorMonetario(dto.getPreco()));
         pecaInsumo.setQuantidadeEstoque(dto.getQuantidadeEstoque());
 
         PecaInsumo pecaAtualizada = pecaInsumoRepository.save(pecaInsumo);

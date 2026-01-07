@@ -6,6 +6,7 @@ import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.Servico;
 import com.techchallenge.domain.repository.ServicoRepository;
 import com.techchallenge.domain.service.ServicoService;
+import com.techchallenge.domain.valueobject.ValorMonetario;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,7 @@ class ServicoServiceTest {
         servico = new Servico();
         servico.setId(1L);
         servico.setDescricao("Troca de óleo");
-        servico.setPreco(new BigDecimal("150.00"));
+        servico.setPreco(new ValorMonetario(new BigDecimal("150.00")));
     }
 
     @Test
@@ -94,7 +95,7 @@ class ServicoServiceTest {
         Servico servico2 = new Servico();
         servico2.setId(2L);
         servico2.setDescricao("Alinhamento e balanceamento");
-        servico2.setPreco(new BigDecimal("80.00"));
+        servico2.setPreco(new ValorMonetario(new BigDecimal("80.00")));
 
         when(servicoRepository.findAll()).thenReturn(Arrays.asList(servico, servico2));
 

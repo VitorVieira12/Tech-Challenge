@@ -20,7 +20,7 @@ public class ServicoResponseDTO {
         return new ServicoResponseDTO(
             servico.getId(),
             servico.getDescricao(),
-            servico.getPreco()
+            servico.getPreco().getValor()
         );
     }
 }

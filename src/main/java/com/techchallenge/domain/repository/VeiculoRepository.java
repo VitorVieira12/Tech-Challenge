@@ -11,13 +11,13 @@ import java.util.Optional;
 @Repository
 public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
 
-    Optional<Veiculo> findByPlaca(String placa);
+    Optional<Veiculo> findByPlacaValor(String placa);
 
     List<Veiculo> findByClienteId(Long clienteId);
 
     List<Veiculo> findByCliente(Cliente cliente);
 
-    boolean existsByPlaca(String placa);
+    boolean existsByPlacaValor(String placa);
 }
 
 

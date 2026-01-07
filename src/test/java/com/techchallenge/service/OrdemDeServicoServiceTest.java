@@ -6,6 +6,7 @@ import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.*;
 import com.techchallenge.domain.repository.*;
 import com.techchallenge.domain.service.OrdemDeServicoService;
+import com.techchallenge.domain.valueobject.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,26 +55,26 @@ class OrdemDeServicoServiceTest {
         cliente = new Cliente();
         cliente.setId(1L);
         cliente.setNome("João Silva");
-        cliente.setCpfCnpj("12345678901");
-        cliente.setContato("joao@email.com");
+        cliente.setCpfCnpj(new CpfCnpj("11144477735"));
+        cliente.setContato(new Contato("joao@email.com"));
 
         veiculo = new Veiculo();
         veiculo.setId(1L);
-        veiculo.setPlaca("ABC1234");
+        veiculo.setPlaca(new Placa("ABC1234"));
         veiculo.setMarca("Toyota");
         veiculo.setModelo("Corolla");
-        veiculo.setAno(2020);
+        veiculo.setAno(new AnoVeiculo(2020));
         veiculo.setCliente(cliente);
 
         servico = new Servico();
         servico.setId(1L);
         servico.setDescricao("Troca de óleo");
-        servico.setPreco(new BigDecimal("150.00"));
+        servico.setPreco(new ValorMonetario(new BigDecimal("150.00")));
 
         peca = new PecaInsumo();
         peca.setId(1L);
         peca.setNome("Filtro de óleo");
-        peca.setPreco(new BigDecimal("45.90"));
+        peca.setPreco(new ValorMonetario(new BigDecimal("45.90")));
         peca.setQuantidadeEstoque(100);
     }
 
@@ -82,8 +83,8 @@ class OrdemDeServicoServiceTest {
     void deveCriarOSComSucesso() {
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         
-        when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.of(cliente));
-        when(veiculoRepository.findByPlaca("ABC1234")).thenReturn(Optional.of(veiculo));
+        when(clienteRepository.findByCpfCnpjValor("11144477735")).thenReturn(Optional.of(cliente));
+        when(veiculoRepository.findByPlacaValor("ABC1234")).thenReturn(Optional.of(veiculo));
         when(servicoRepository.findById(1L)).thenReturn(Optional.of(servico));
         when(pecaInsumoRepository.findById(1L)).thenReturn(Optional.of(peca));
         when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenAnswer(i -> {
@@ -99,8 +100,8 @@ class OrdemDeServicoServiceTest {
         assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
         assertThat(result.getValorTotalOrcamento()).isEqualByComparingTo(new BigDecimal("241.80")); // 150 + (45.90 * 2)
         
-        verify(clienteRepository).findByCpfCnpj("12345678901");
-        verify(veiculoRepository).findByPlaca("ABC1234");
+        verify(clienteRepository).findByCpfCnpjValor("11144477735");
+        verify(veiculoRepository).findByPlacaValor("ABC1234");
         verify(servicoRepository).findById(1L);
         verify(pecaInsumoRepository).findById(1L);
         verify(ordemDeServicoRepository, times(2)).save(any(OrdemDeServico.class)); // Uma vez na criação, outra no envio
@@ -113,13 +114,13 @@ class OrdemDeServicoServiceTest {
     @DisplayName("Deve lançar exceção quando cliente não existe")
     void deveLancarExcecaoQuandoClienteNaoExiste() {
         OrdemDeServicoInputDTO input = criarInputDTOValido();
-        when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.empty());
+        when(clienteRepository.findByCpfCnpjValor("11144477735")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> ordemDeServicoService.criarOS(input))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("Cliente com CPF/CNPJ 12345678901 não encontrado");
+                .hasMessageContaining("Cliente com CPF/CNPJ 11144477735 não encontrado");
         
-        verify(clienteRepository).findByCpfCnpj("12345678901");
+        verify(clienteRepository).findByCpfCnpjValor("11144477735");
         verifyNoInteractions(veiculoRepository, servicoRepository, pecaInsumoRepository, ordemDeServicoRepository);
     }
 
@@ -129,16 +130,16 @@ class OrdemDeServicoServiceTest {
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         peca.setQuantidadeEstoque(1);
         
-        when(clienteRepository.findByCpfCnpj("12345678901")).thenReturn(Optional.of(cliente));
-        when(veiculoRepository.findByPlaca("ABC1234")).thenReturn(Optional.of(veiculo));
+        when(clienteRepository.findByCpfCnpjValor("11144477735")).thenReturn(Optional.of(cliente));
+        when(veiculoRepository.findByPlacaValor("ABC1234")).thenReturn(Optional.of(veiculo));
         when(servicoRepository.findById(1L)).thenReturn(Optional.of(servico));
         when(pecaInsumoRepository.findById(1L)).thenReturn(Optional.of(peca));
 
         assertThatThrownBy(() -> ordemDeServicoService.criarOS(input))
                 .isInstanceOf(EstoqueInsuficienteException.class);
         
-        verify(clienteRepository).findByCpfCnpj("12345678901");
-        verify(veiculoRepository).findByPlaca("ABC1234");
+        verify(clienteRepository).findByCpfCnpjValor("11144477735");
+        verify(veiculoRepository).findByPlacaValor("ABC1234");
         verify(servicoRepository).findById(1L);
         verify(pecaInsumoRepository).findById(1L);
         verifyNoInteractions(ordemDeServicoRepository);
@@ -152,7 +153,7 @@ class OrdemDeServicoServiceTest {
         os.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
         os.setCliente(cliente);
         os.setVeiculo(veiculo);
-        os.setValorTotalOrcamento(new BigDecimal("200.00"));
+        os.setValorTotalOrcamento(new ValorMonetario(new BigDecimal("200.00")));
         
         StatusUpdateDTO statusUpdate = new StatusUpdateDTO();
         statusUpdate.setNovoStatus(StatusOrdemServico.EM_EXECUCAO);
@@ -199,11 +200,11 @@ class OrdemDeServicoServiceTest {
         os.setStatus(StatusOrdemServico.EM_EXECUCAO);
         os.setCliente(cliente);
         os.setVeiculo(veiculo);
-        os.setValorTotalOrcamento(new BigDecimal("200.00"));
+        os.setValorTotalOrcamento(new ValorMonetario(new BigDecimal("200.00")));
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
 
-        OrdemDeServicoPublicDTO result = ordemDeServicoService.consultarStatusPublico(1L, "12345678901");
+        OrdemDeServicoPublicDTO result = ordemDeServicoService.consultarStatusPublico(1L, "11144477735");
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
@@ -222,7 +223,8 @@ class OrdemDeServicoServiceTest {
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
 
-        assertThatThrownBy(() -> ordemDeServicoService.consultarStatusPublico(1L, "99999999999"))
+        // Usando um CPF válido mas diferente do cliente (cliente usa 11144477735)
+        assertThatThrownBy(() -> ordemDeServicoService.consultarStatusPublico(1L, "52998224725"))
                 .isInstanceOf(ResourceNotFoundException.class);
         
         verify(ordemDeServicoRepository).findById(1L);
@@ -230,7 +232,7 @@ class OrdemDeServicoServiceTest {
 
     private OrdemDeServicoInputDTO criarInputDTOValido() {
         OrdemDeServicoInputDTO input = new OrdemDeServicoInputDTO();
-        input.setCpfCnpjCliente("12345678901");
+        input.setCpfCnpjCliente("11144477735");
         
         VeiculoInputDTO veiculoDTO = new VeiculoInputDTO();
         veiculoDTO.setPlaca("ABC1234");

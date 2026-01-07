@@ -1,5 +1,7 @@
 package com.techchallenge.domain.model;
 
+import com.techchallenge.domain.valueobject.Contato;
+import com.techchallenge.domain.valueobject.CpfCnpj;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,11 +24,11 @@ public class Cliente {
     @Column(nullable = false)
     private String nome;
 
-    @Column(nullable = false, unique = true, length = 14)
-    private String cpfCnpj;
+    @Embedded
+    private CpfCnpj cpfCnpj;
 
-    @Column(nullable = false)
-    private String contato;
+    @Embedded
+    private Contato contato;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Veiculo> veiculos = new ArrayList<>();

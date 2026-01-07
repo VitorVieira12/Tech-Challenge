@@ -13,6 +13,10 @@ import com.techchallenge.domain.repository.OrdemDeServicoRepository;
 import com.techchallenge.domain.repository.PecaInsumoRepository;
 import com.techchallenge.domain.repository.ServicoRepository;
 import com.techchallenge.domain.repository.VeiculoRepository;
+import com.techchallenge.domain.valueobject.AnoVeiculo;
+import com.techchallenge.domain.valueobject.CpfCnpj;
+import com.techchallenge.domain.valueobject.Placa;
+import com.techchallenge.domain.valueobject.ValorMonetario;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,7 +46,7 @@ public class OrdemDeServicoService {
     public OrdemDeServicoResponseDTO criarOS(OrdemDeServicoInputDTO dto) {
         log.info("Iniciando criação de OS para CPF/CNPJ: {}", dto.getCpfCnpjCliente());
 
-        Cliente cliente = clienteRepository.findByCpfCnpj(dto.getCpfCnpjCliente())
+        Cliente cliente = clienteRepository.findByCpfCnpjValor(dto.getCpfCnpjCliente())
             .orElseThrow(() -> new ResourceNotFoundException(
                 "Cliente com CPF/CNPJ " + dto.getCpfCnpjCliente() + " não encontrado. " +
                 "Por favor, cadastre o cliente antes de criar a ordem de serviço."
@@ -65,7 +69,7 @@ public class OrdemDeServicoService {
         os.setObservacoes(dto.getObservacoes());
         os.setStatus(StatusOrdemServico.RECEBIDA);
 
-        BigDecimal valorTotal = BigDecimal.ZERO;
+        ValorMonetario valorTotal = new ValorMonetario(BigDecimal.ZERO);
         for (int i = 0; i < dto.getServicos().size(); i++) {
             var itemDTO = dto.getServicos().get(i);
             Servico servico = servicos.get(i);
@@ -74,10 +78,10 @@ public class OrdemDeServicoService {
             item.setServico(servico);
             item.setQuantidade(itemDTO.getQuantidade());
             item.setPrecoUnitario(servico.getPreco());
-            item.setSubtotal(servico.getPreco().multiply(BigDecimal.valueOf(itemDTO.getQuantidade())));
+            item.setSubtotal(servico.getPreco().multiplicar(itemDTO.getQuantidade()));
             
             os.adicionarItemServico(item);
-            valorTotal = valorTotal.add(item.getSubtotal());
+            valorTotal = valorTotal.somar(item.getSubtotal());
         }
 
         for (int i = 0; i < dto.getPecas().size(); i++) {
@@ -88,10 +92,10 @@ public class OrdemDeServicoService {
             item.setPecaInsumo(peca);
             item.setQuantidade(itemDTO.getQuantidade());
             item.setPrecoUnitario(peca.getPreco());
-            item.setSubtotal(peca.getPreco().multiply(BigDecimal.valueOf(itemDTO.getQuantidade())));
+            item.setSubtotal(peca.getPreco().multiplicar(itemDTO.getQuantidade()));
             
             os.adicionarItemPeca(item);
-            valorTotal = valorTotal.add(item.getSubtotal());
+            valorTotal = valorTotal.somar(item.getSubtotal());
 
             peca.setQuantidadeEstoque(peca.getQuantidadeEstoque() - itemDTO.getQuantidade());
             pecaInsumoRepository.save(peca);
@@ -108,11 +112,11 @@ public class OrdemDeServicoService {
     }
 
     private Veiculo obterOuCriarVeiculo(OrdemDeServicoInputDTO dto, Cliente cliente) {
-        String placa = dto.getVeiculo().getPlaca().toUpperCase();
+        Placa placa = new Placa(dto.getVeiculo().getPlaca());
         
-        return veiculoRepository.findByPlaca(placa)
+        return veiculoRepository.findByPlacaValor(placa.getValor())
             .orElseGet(() -> {
-                log.info("Veículo não encontrado. Cadastrando novo veículo com placa: {}", placa);
+                log.info("Veículo não encontrado. Cadastrando novo veículo com placa: {}", placa.getValor());
 
                 if (dto.getVeiculo().getMarca() == null || dto.getVeiculo().getMarca().isBlank()) {
                     throw new IllegalArgumentException(
@@ -134,7 +138,7 @@ public class OrdemDeServicoService {
                 novoVeiculo.setPlaca(placa);
                 novoVeiculo.setMarca(dto.getVeiculo().getMarca());
                 novoVeiculo.setModelo(dto.getVeiculo().getModelo());
-                novoVeiculo.setAno(dto.getVeiculo().getAno());
+                novoVeiculo.setAno(new AnoVeiculo(dto.getVeiculo().getAno()));
                 novoVeiculo.setCliente(cliente);
                 
                 return veiculoRepository.save(novoVeiculo);
@@ -315,10 +319,12 @@ public class OrdemDeServicoService {
     public OrdemDeServicoPublicDTO consultarStatusPublico(Long osId, String cpfCnpjCliente) {
         log.info("Consulta pública da OS {} com CPF/CNPJ: {}", osId, cpfCnpjCliente);
         
+        CpfCnpj cpfCnpj = new CpfCnpj(cpfCnpjCliente);
+        
         OrdemDeServico os = ordemDeServicoRepository.findById(osId)
             .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço", osId));
 
-        if (!os.getCliente().getCpfCnpj().equals(cpfCnpjCliente)) {
+        if (!os.getCliente().getCpfCnpj().equals(cpfCnpj)) {
             log.warn("Tentativa de acesso não autorizado à OS {} com CPF/CNPJ: {}", osId, cpfCnpjCliente);
             throw new ResourceNotFoundException("Ordem de Serviço", osId);
         }

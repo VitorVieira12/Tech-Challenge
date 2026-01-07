@@ -5,6 +5,7 @@ import com.techchallenge.domain.dto.ServicoResponseDTO;
 import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.Servico;
 import com.techchallenge.domain.repository.ServicoRepository;
+import com.techchallenge.domain.valueobject.ValorMonetario;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ public class ServicoService {
     public ServicoResponseDTO criar(ServicoDTO dto) {
         Servico servico = new Servico();
         servico.setDescricao(dto.getDescricao());
-        servico.setPreco(dto.getPreco());
+        servico.setPreco(new ValorMonetario(dto.getPreco()));
 
         Servico servicoSalvo = servicoRepository.save(servico);
         return ServicoResponseDTO.fromEntity(servicoSalvo);
@@ -48,7 +49,7 @@ public class ServicoService {
             .orElseThrow(() -> new ResourceNotFoundException("Serviço", id));
 
         servico.setDescricao(dto.getDescricao());
-        servico.setPreco(dto.getPreco());
+        servico.setPreco(new ValorMonetario(dto.getPreco()));
 
         Servico servicoAtualizado = servicoRepository.save(servico);
         return ServicoResponseDTO.fromEntity(servicoAtualizado);

@@ -1,11 +1,11 @@
 package com.techchallenge.domain.model;
 
+import com.techchallenge.domain.valueobject.ValorMonetario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +33,9 @@ public class OrdemDeServico {
     @Column
     private LocalDateTime dataEntrega;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal valorTotalOrcamento;
+    @Embedded
+    @AttributeOverride(name = "valor", column = @Column(name = "valor_total_orcamento", nullable = false, precision = 10, scale = 2))
+    private ValorMonetario valorTotalOrcamento;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)

@@ -21,10 +21,10 @@ public class VeiculoResponseDTO {
     public static VeiculoResponseDTO fromEntity(Veiculo veiculo) {
         return new VeiculoResponseDTO(
             veiculo.getId(),
-            veiculo.getPlaca(),
+            veiculo.getPlaca().getValor(),
             veiculo.getMarca(),
             veiculo.getModelo(),
-            veiculo.getAno(),
+            veiculo.getAno().getValor(),
             veiculo.getCliente().getId(),
             veiculo.getCliente().getNome()
         );

@@ -7,6 +7,8 @@ import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.Cliente;
 import com.techchallenge.domain.repository.ClienteRepository;
 import com.techchallenge.domain.service.ClienteService;
+import com.techchallenge.domain.valueobject.Contato;
+import com.techchallenge.domain.valueobject.CpfCnpj;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,20 +42,20 @@ class ClienteServiceTest {
     void setUp() {
         clienteDTO = new ClienteDTO();
         clienteDTO.setNome("João Silva");
-        clienteDTO.setCpfCnpj("12345678901");
+        clienteDTO.setCpfCnpj("11144477735");
         clienteDTO.setContato("joao@email.com");
 
         cliente = new Cliente();
         cliente.setId(1L);
         cliente.setNome("João Silva");
-        cliente.setCpfCnpj("12345678901");
-        cliente.setContato("joao@email.com");
+        cliente.setCpfCnpj(new CpfCnpj("11144477735"));
+        cliente.setContato(new Contato("joao@email.com"));
     }
 
     @Test
     @DisplayName("Deve criar cliente com sucesso quando dados são válidos")
     void deveCriarClienteComSucesso() {
-        when(clienteRepository.existsByCpfCnpj("12345678901")).thenReturn(false);
+        when(clienteRepository.existsByCpfCnpjValor("11144477735")).thenReturn(false);
         when(clienteRepository.save(any(Cliente.class))).thenReturn(cliente);
 
         ClienteResponseDTO result = clienteService.criar(clienteDTO);
@@ -61,22 +63,22 @@ class ClienteServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getNome()).isEqualTo("João Silva");
-        assertThat(result.getCpfCnpj()).isEqualTo("12345678901");
+        assertThat(result.getCpfCnpj()).isEqualTo("11144477735");
         
-        verify(clienteRepository).existsByCpfCnpj("12345678901");
+        verify(clienteRepository).existsByCpfCnpjValor("11144477735");
         verify(clienteRepository).save(any(Cliente.class));
     }
 
     @Test
     @DisplayName("Deve lançar exceção quando CPF/CNPJ já existe")
     void deveLancarExcecaoQuandoCpfCnpjJaExiste() {
-        when(clienteRepository.existsByCpfCnpj("12345678901")).thenReturn(true);
+        when(clienteRepository.existsByCpfCnpjValor("11144477735")).thenReturn(true);
 
         assertThatThrownBy(() -> clienteService.criar(clienteDTO))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("Já existe um cliente cadastrado com este CPF/CNPJ");
         
-        verify(clienteRepository).existsByCpfCnpj("12345678901");
+        verify(clienteRepository).existsByCpfCnpjValor("11144477735");
         verify(clienteRepository, never()).save(any());
     }
 
@@ -111,8 +113,8 @@ class ClienteServiceTest {
         Cliente cliente2 = new Cliente();
         cliente2.setId(2L);
         cliente2.setNome("Maria Santos");
-        cliente2.setCpfCnpj("98765432100");
-        cliente2.setContato("maria@email.com");
+        cliente2.setCpfCnpj(new CpfCnpj("52998224725"));
+        cliente2.setContato(new Contato("maria@email.com"));
 
         when(clienteRepository.findAll()).thenReturn(Arrays.asList(cliente, cliente2));
 
@@ -130,7 +132,7 @@ class ClienteServiceTest {
     void deveAtualizarClienteComSucesso() {
         ClienteDTO atualizacaoDTO = new ClienteDTO();
         atualizacaoDTO.setNome("João Silva Atualizado");
-        atualizacaoDTO.setCpfCnpj("12345678901");
+        atualizacaoDTO.setCpfCnpj("11144477735");
         atualizacaoDTO.setContato("joao.novo@email.com");
 
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(cliente));
@@ -148,18 +150,18 @@ class ClienteServiceTest {
     void deveLancarExcecaoAoAtualizarCpfParaUmQueJaExiste() {
         ClienteDTO atualizacaoDTO = new ClienteDTO();
         atualizacaoDTO.setNome("João Silva");
-        atualizacaoDTO.setCpfCnpj("98765432100");
+        atualizacaoDTO.setCpfCnpj("52998224725");
         atualizacaoDTO.setContato("joao@email.com");
 
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(cliente));
-        when(clienteRepository.existsByCpfCnpj("98765432100")).thenReturn(true);
+        when(clienteRepository.existsByCpfCnpjValor("52998224725")).thenReturn(true);
 
         assertThatThrownBy(() -> clienteService.atualizar(1L, atualizacaoDTO))
                 .isInstanceOf(DuplicateResourceException.class)
                 .hasMessageContaining("Já existe um cliente cadastrado com este CPF/CNPJ");
         
         verify(clienteRepository).findById(1L);
-        verify(clienteRepository).existsByCpfCnpj("98765432100");
+        verify(clienteRepository).existsByCpfCnpjValor("52998224725");
         verify(clienteRepository, never()).save(any());
     }
 

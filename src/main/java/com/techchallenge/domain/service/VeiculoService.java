@@ -7,6 +7,8 @@ import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.Cliente;
 import com.techchallenge.domain.model.Veiculo;
 import com.techchallenge.domain.repository.VeiculoRepository;
+import com.techchallenge.domain.valueobject.AnoVeiculo;
+import com.techchallenge.domain.valueobject.Placa;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,17 +25,19 @@ public class VeiculoService {
 
     @Transactional
     public VeiculoResponseDTO criar(VeiculoDTO dto) {
-        if (veiculoRepository.existsByPlaca(dto.getPlaca())) {
+        Placa placa = new Placa(dto.getPlaca());
+        
+        if (veiculoRepository.existsByPlacaValor(placa.getValor())) {
             throw new DuplicateResourceException("Já existe um veículo cadastrado com esta placa");
         }
 
         Cliente cliente = clienteService.buscarEntidadePorId(dto.getClienteId());
 
         Veiculo veiculo = new Veiculo();
-        veiculo.setPlaca(dto.getPlaca().toUpperCase());
+        veiculo.setPlaca(placa);
         veiculo.setMarca(dto.getMarca());
         veiculo.setModelo(dto.getModelo());
-        veiculo.setAno(dto.getAno());
+        veiculo.setAno(new AnoVeiculo(dto.getAno()));
         veiculo.setCliente(cliente);
 
         Veiculo veiculoSalvo = veiculoRepository.save(veiculo);
@@ -67,17 +71,19 @@ public class VeiculoService {
         Veiculo veiculo = veiculoRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Veículo", id));
 
-        if (!veiculo.getPlaca().equals(dto.getPlaca().toUpperCase()) && 
-            veiculoRepository.existsByPlaca(dto.getPlaca())) {
+        Placa novaPlaca = new Placa(dto.getPlaca());
+        
+        if (!veiculo.getPlaca().getValor().equals(novaPlaca.getValor()) && 
+            veiculoRepository.existsByPlacaValor(novaPlaca.getValor())) {
             throw new DuplicateResourceException("Já existe um veículo cadastrado com esta placa");
         }
 
         Cliente cliente = clienteService.buscarEntidadePorId(dto.getClienteId());
 
-        veiculo.setPlaca(dto.getPlaca().toUpperCase());
+        veiculo.setPlaca(novaPlaca);
         veiculo.setMarca(dto.getMarca());
         veiculo.setModelo(dto.getModelo());
-        veiculo.setAno(dto.getAno());
+        veiculo.setAno(new AnoVeiculo(dto.getAno()));
         veiculo.setCliente(cliente);
 
         Veiculo veiculoAtualizado = veiculoRepository.save(veiculo);

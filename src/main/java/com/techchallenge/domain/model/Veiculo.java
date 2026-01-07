@@ -1,5 +1,7 @@
 package com.techchallenge.domain.model;
 
+import com.techchallenge.domain.valueobject.AnoVeiculo;
+import com.techchallenge.domain.valueobject.Placa;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,8 +18,8 @@ public class Veiculo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 10)
-    private String placa;
+    @Embedded
+    private Placa placa;
 
     @Column(nullable = false)
     private String marca;
@@ -25,8 +27,8 @@ public class Veiculo {
     @Column(nullable = false)
     private String modelo;
 
-    @Column(nullable = false)
-    private Integer ano;
+    @Embedded
+    private AnoVeiculo ano;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cliente_id", nullable = false)

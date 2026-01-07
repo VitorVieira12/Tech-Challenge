@@ -1,11 +1,10 @@
 package com.techchallenge.domain.model;
 
+import com.techchallenge.domain.valueobject.ValorMonetario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "servicos")
@@ -21,8 +20,15 @@ public class Servico {
     @Column(nullable = false)
     private String descricao;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal preco;
+    @Embedded
+    @AttributeOverride(name = "valor", column = @Column(name = "preco", nullable = false, precision = 10, scale = 2))
+    private ValorMonetario preco;
+
+    // Construtor para facilitar a criação com Value Objects
+    public Servico(String descricao, ValorMonetario preco) {
+        this.descricao = descricao;
+        this.preco = preco;
+    }
 }
 
 

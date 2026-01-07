@@ -33,9 +33,9 @@ public class OrdemDeServicoPublicDTO {
             os.getId(),
             os.getDataCriacao(),
             os.getStatus(),
-            os.getVeiculo().getPlaca(),
+            os.getVeiculo().getPlaca().getValor(),
             os.getVeiculo().getMarca() + " " + os.getVeiculo().getModelo(),
-            os.getValorTotalOrcamento(),
+            os.getValorTotalOrcamento().getValor(),
             os.getItensServico().stream()
                 .map(item -> new ServicoSimplificadoDTO(
                     item.getServico().getDescricao(),

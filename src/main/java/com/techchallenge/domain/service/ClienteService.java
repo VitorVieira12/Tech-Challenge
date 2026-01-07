@@ -6,6 +6,8 @@ import com.techchallenge.domain.exception.DuplicateResourceException;
 import com.techchallenge.domain.exception.ResourceNotFoundException;
 import com.techchallenge.domain.model.Cliente;
 import com.techchallenge.domain.repository.ClienteRepository;
+import com.techchallenge.domain.valueobject.Contato;
+import com.techchallenge.domain.valueobject.CpfCnpj;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +23,16 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponseDTO criar(ClienteDTO dto) {
-        if (clienteRepository.existsByCpfCnpj(dto.getCpfCnpj())) {
+        CpfCnpj cpfCnpj = new CpfCnpj(dto.getCpfCnpj());
+        
+        if (clienteRepository.existsByCpfCnpjValor(cpfCnpj.getValor())) {
             throw new DuplicateResourceException("Já existe um cliente cadastrado com este CPF/CNPJ");
         }
 
         Cliente cliente = new Cliente();
         cliente.setNome(dto.getNome());
-        cliente.setCpfCnpj(dto.getCpfCnpj());
-        cliente.setContato(dto.getContato());
+        cliente.setCpfCnpj(cpfCnpj);
+        cliente.setContato(new Contato(dto.getContato()));
 
         Cliente clienteSalvo = clienteRepository.save(cliente);
         return ClienteResponseDTO.fromEntity(clienteSalvo);
@@ -53,14 +57,16 @@ public class ClienteService {
         Cliente cliente = clienteRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Cliente", id));
 
-        if (!cliente.getCpfCnpj().equals(dto.getCpfCnpj()) && 
-            clienteRepository.existsByCpfCnpj(dto.getCpfCnpj())) {
+        CpfCnpj novoCpfCnpj = new CpfCnpj(dto.getCpfCnpj());
+        
+        if (!cliente.getCpfCnpj().getValor().equals(novoCpfCnpj.getValor()) && 
+            clienteRepository.existsByCpfCnpjValor(novoCpfCnpj.getValor())) {
             throw new DuplicateResourceException("Já existe um cliente cadastrado com este CPF/CNPJ");
         }
 
         cliente.setNome(dto.getNome());
-        cliente.setCpfCnpj(dto.getCpfCnpj());
-        cliente.setContato(dto.getContato());
+        cliente.setCpfCnpj(novoCpfCnpj);
+        cliente.setContato(new Contato(dto.getContato()));
 
         Cliente clienteAtualizado = clienteRepository.save(cliente);
         return ClienteResponseDTO.fromEntity(clienteAtualizado);

@@ -1,11 +1,10 @@
 package com.techchallenge.domain.model;
 
+import com.techchallenge.domain.valueobject.ValorMonetario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.math.BigDecimal;
 
 @Entity
 @Table(name = "ordem_servico_pecas")
@@ -26,13 +25,15 @@ public class OrdemServicoPeca {
     @JoinColumn(name = "peca_insumo_id", nullable = false)
     private PecaInsumo pecaInsumo;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal precoUnitario;
+    @Embedded
+    @AttributeOverride(name = "valor", column = @Column(name = "preco_unitario", nullable = false, precision = 10, scale = 2))
+    private ValorMonetario precoUnitario;
 
     @Column(nullable = false)
     private Integer quantidade;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal subtotal;
+    @Embedded
+    @AttributeOverride(name = "valor", column = @Column(name = "subtotal", nullable = false, precision = 10, scale = 2))
+    private ValorMonetario subtotal;
 }
 
