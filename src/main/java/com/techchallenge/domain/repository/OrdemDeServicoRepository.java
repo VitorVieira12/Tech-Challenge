@@ -24,4 +24,13 @@ public interface OrdemDeServicoRepository extends JpaRepository<OrdemDeServico, 
 
     @Query("SELECT COUNT(os) FROM OrdemDeServico os WHERE os.status = :status")
     Long countByStatus(StatusOrdemServico status);
+
+    /**
+     * Busca ordens de serviço em andamento (excluindo finalizadas e entregues)
+     * Usada pelo Use Case de listagem ordenada
+     */
+    @Query("SELECT os FROM OrdemDeServico os " +
+           "WHERE os.status NOT IN ('FINALIZADA', 'ENTREGUE') " +
+           "ORDER BY os.dataCriacao ASC")
+    List<OrdemDeServico> findOrdensEmAndamento();
 }

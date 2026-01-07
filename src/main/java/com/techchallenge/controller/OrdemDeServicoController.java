@@ -1,5 +1,6 @@
 package com.techchallenge.controller;
 
+import com.techchallenge.domain.dto.AprovacaoOrcamentoInputDTO;
 import com.techchallenge.domain.dto.MonitoramentoDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoInputDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoPublicDTO;
@@ -7,6 +8,8 @@ import com.techchallenge.domain.dto.OrdemDeServicoResponseDTO;
 import com.techchallenge.domain.dto.StatusUpdateDTO;
 import com.techchallenge.domain.model.StatusOrdemServico;
 import com.techchallenge.domain.service.OrdemDeServicoService;
+import com.techchallenge.domain.usecase.AprovarOrcamentoUseCase;
+import com.techchallenge.domain.usecase.ListarOrdensServicoUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,6 +27,8 @@ import java.util.List;
 public class OrdemDeServicoController {
 
     private final OrdemDeServicoService ordemDeServicoService;
+    private final AprovarOrcamentoUseCase aprovarOrcamentoUseCase;
+    private final ListarOrdensServicoUseCase listarOrdensServicoUseCase;
 
     @PostMapping
     public ResponseEntity<OrdemDeServicoResponseDTO> criar(@Valid @RequestBody OrdemDeServicoInputDTO dto) {
@@ -81,6 +86,34 @@ public class OrdemDeServicoController {
     @GetMapping("/monitoramento/tempo-medio")
     public ResponseEntity<MonitoramentoDTO> consultarTempoMedio() {
         MonitoramentoDTO response = ordemDeServicoService.calcularTempoMedioExecucao();
+        return ResponseEntity.ok(response);
+    }
+
+    // ==================== NOVOS ENDPOINTS - FASE 2 ====================
+
+    @PostMapping("/{id}/aprovar-orcamento")
+    @Operation(
+            summary = "Aprovar ou Recusar Orçamento",
+            description = "Endpoint para o cliente aprovar ou recusar o orçamento apresentado. " +
+                    "Se aprovado, a OS passa para EM_EXECUCAO. Se recusado, volta para RECEBIDA."
+    )
+    public ResponseEntity<OrdemDeServicoResponseDTO> aprovarOrcamento(
+            @PathVariable Long id,
+            @Valid @RequestBody AprovacaoOrcamentoInputDTO aprovacaoDTO) {
+        
+        OrdemDeServicoResponseDTO response = aprovarOrcamentoUseCase.executar(id, aprovacaoDTO);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/em-andamento")
+    @Operation(
+            summary = "Listar OS em Andamento com Ordenação Prioritária",
+            description = "Lista todas as OS em andamento (excluindo finalizadas e entregues) " +
+                    "com ordenação prioritária: 1º EM_EXECUCAO, 2º AGUARDANDO_APROVACAO, " +
+                    "3º EM_DIAGNOSTICO, 4º RECEBIDA. Dentro de cada status, as mais antigas primeiro."
+    )
+    public ResponseEntity<List<OrdemDeServicoResponseDTO>> listarEmAndamento() {
+        List<OrdemDeServicoResponseDTO> response = listarOrdensServicoUseCase.executar();
         return ResponseEntity.ok(response);
     }
 }
