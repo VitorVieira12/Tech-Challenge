@@ -1,0 +1,74 @@
+# ============================================================================
+# EXEMPLO DE CONFIGURAÇÃO TERRAFORM
+# ============================================================================
+# 
+# INSTRUÇÕES:
+# 1. Copie este arquivo para terraform.tfvars:
+#    $ cp terraform.tfvars.example terraform.tfvars
+# 
+# 2. Edite os valores conforme necessário
+# 
+# 3. NUNCA commite terraform.tfvars no Git!
+#    (já está no .gitignore)
+#
+# ============================================================================
+
+# Configuração Geral
+project_name = "tech-challenge"
+environment  = "production"
+aws_region   = "us-east-1"
+
+# Tags
+tags = {
+  Project     = "tech-challenge"
+  Environment = "production"
+  ManagedBy   = "terraform"
+  Team        = "devops"
+  CostCenter  = "engineering"
+}
+
+# Rede (VPC)
+vpc_cidr             = "10.0.0.0/16"
+availability_zones   = ["us-east-1a", "us-east-1b"]
+private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24"]
+public_subnet_cidrs  = ["10.0.101.0/24", "10.0.102.0/24"]
+database_subnet_cidrs = ["10.0.201.0/24", "10.0.202.0/24"]
+
+# EKS (Kubernetes)
+cluster_name        = "tech-challenge-eks"
+cluster_version     = "1.28"
+node_instance_types = ["t3.medium"]  # 2 vCPU, 4GB RAM
+node_desired_size   = 2
+node_min_size       = 1
+node_max_size       = 4
+node_disk_size      = 20
+
+# RDS (PostgreSQL)
+db_identifier             = "tech-challenge-db"
+db_engine_version         = "15.4"
+db_instance_class         = "db.t3.micro"  # Para dev/staging
+# db_instance_class       = "db.t3.small"  # Para produção
+db_allocated_storage      = 20
+db_max_allocated_storage  = 100
+db_name                   = "tech_challenge_db"
+db_username               = "tech_admin"
+# IMPORTANTE: Defina a senha via variável de ambiente:
+# export TF_VAR_db_password="SuaSenhaSuperSegura123!"
+db_password               = ""  # NÃO coloque senha aqui!
+
+# Backup e Manutenção
+db_backup_retention_period = 7
+db_backup_window           = "03:00-04:00"  # UTC
+db_maintenance_window      = "sun:04:00-sun:05:00"  # UTC
+
+# Alta Disponibilidade
+db_multi_az = false  # true para produção
+
+# Segurança
+db_publicly_accessible    = false  # sempre false em produção
+db_skip_final_snapshot    = false  # false em produção (cria snapshot ao deletar)
+enable_deletion_protection = true  # true em produção
+
+# CIDR Blocks Permitidos (para acesso ao banco)
+allowed_cidr_blocks = ["10.0.0.0/16"]  # Apenas VPC interna
+
