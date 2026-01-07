@@ -5,6 +5,8 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5.svg)](https://kubernetes.io/)
+[![Terraform](https://img.shields.io/badge/Terraform-1.6-7B42BC.svg)](https://www.terraform.io/)
+[![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF.svg)](https://github.com/features/actions)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 API RESTful para gerenciamento completo de oficina mecânica, desenvolvida com Spring Boot 3, JWT Authentication, documentação Swagger/OpenAPI e containerização Docker.
@@ -14,6 +16,11 @@ API RESTful para gerenciamento completo de oficina mecânica, desenvolvida com S
 ## 📋 Índice
 
 - [Sobre o Projeto](#sobre-o-projeto)
+- [Arquitetura de Infraestrutura](#-arquitetura-de-infraestrutura)
+  - [Visão Geral](#visão-geral)
+  - [Kubernetes](#kubernetes-orquestração)
+  - [Terraform](#terraform-infraestrutura-como-código)
+  - [CI/CD Pipeline](#cicd-pipeline)
 - [Tecnologias](#tecnologias)
 - [Funcionalidades](#funcionalidades)
 - [Pré-requisitos](#pré-requisitos)
@@ -42,6 +49,345 @@ O **Tech Challenge** é uma aplicação completa de gerenciamento de oficina mec
 
 ---
 
+## 🏗️ Arquitetura de Infraestrutura
+
+### Visão Geral
+
+O Tech Challenge implementa uma arquitetura moderna e completa de **Cloud-Native** com automação end-to-end:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         DEVELOPER                                │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │ git push
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   GITHUB ACTIONS (CI/CD)                         │
+├─────────────────────────────────────────────────────────────────┤
+│  1. Build & Test    │  Maven, JUnit, JaCoCo                     │
+│  2. Security Scan   │  OWASP, Trivy, SonarQube                  │
+│  3. Docker Build    │  Multi-platform, Tags, Push               │
+│  4. Deploy          │  Kubectl, Helm, Rolling Update            │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │ deploy
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                     KUBERNETES CLUSTER                           │
+│                    (AWS EKS / Azure AKS / GCP GKE)               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
+│  │   Pod 1     │  │   Pod 2     │  │   Pod N     │             │
+│  │ Spring Boot │  │ Spring Boot │  │ Spring Boot │             │
+│  │  (App)      │  │  (App)      │  │  (App)      │             │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘             │
+│         │                 │                 │                     │
+│         └─────────────────┼─────────────────┘                     │
+│                           │                                       │
+│         ┌─────────────────▼─────────────────┐                    │
+│         │   PostgreSQL Service (ClusterIP)  │                    │
+│         └─────────────────┬─────────────────┘                    │
+│                           │                                       │
+│  ┌───────────────────────────────────────────────────┐          │
+│  │  HPA (Horizontal Pod Autoscaler)                  │          │
+│  │  • Min: 1 replica                                 │          │
+│  │  • Max: 5 replicas                                │          │
+│  │  • CPU Target: 70%                                │          │
+│  └───────────────────────────────────────────────────┘          │
+│                                                                   │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │ connection
+                           ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    MANAGED DATABASE                              │
+│              (RDS PostgreSQL / Azure DB / Cloud SQL)             │
+│                                                                   │
+│  • PostgreSQL 15.4                                               │
+│  • Automated Backups (7 days)                                    │
+│  • Encrypted at rest                                             │
+│  • Multi-AZ (Production)                                         │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│                      TERRAFORM (IaC)                             │
+│  Provisiona toda a infraestrutura acima automaticamente          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Kubernetes (Orquestração)
+
+**Localização:** [`/k8s`](k8s/) | **Documentação:** [KUBERNETES.md](KUBERNETES.md)
+
+#### 🎯 O que faz:
+Orquestra os containers da aplicação com **alta disponibilidade**, **auto-scaling** e **zero downtime**.
+
+#### 📦 Recursos Implementados:
+
+| Recurso | Arquivo | Descrição |
+|---------|---------|-----------|
+| **Deployment** | `app-deployment.yaml` | 2 réplicas iniciais, Rolling Update |
+| **Service** | `app-service.yaml` | LoadBalancer, Session Affinity |
+| **HPA** | `hpa.yaml` | Auto-scaling 1-5 pods (CPU 70%) |
+| **ConfigMap** | `configmap.yaml` | Variáveis de ambiente |
+| **Secret** | `secret.yaml` | Credenciais (base64) |
+| **PostgreSQL** | `postgres-*.yaml` | Database com PVC (5Gi) |
+| **Ingress** | `ingress.yaml` | Roteamento HTTP (opcional) |
+
+#### ⚙️ Características:
+
+- ✅ **Alta Disponibilidade:** Múltiplas réplicas em diferentes nodes
+- ✅ **Auto-Scaling:** HPA escala de 1 a 5 pods baseado em CPU/Memória
+- ✅ **Zero Downtime:** RollingUpdate com `maxUnavailable: 0`
+- ✅ **Health Checks:** Liveness, Readiness e Startup probes
+- ✅ **Persistent Storage:** PVC para dados do PostgreSQL
+- ✅ **Resource Limits:** CPU e Memória configurados
+
+#### 🚀 Deploy Rápido:
+
+```bash
+# Aplicar todos os manifests
+kubectl apply -f k8s/
+
+# Verificar status
+kubectl get pods -n tech-challenge
+kubectl get hpa -n tech-challenge
+
+# Acessar aplicação
+kubectl port-forward svc/tech-challenge-service 8080:80 -n tech-challenge
+```
+
+📖 **Documentação Completa:** [k8s/README.md](k8s/README.md)
+
+---
+
+### Terraform (Infraestrutura como Código)
+
+**Localização:** [`/infra`](infra/) | **Documentação:** [TERRAFORM.md](infra/TERRAFORM.md)
+
+#### 🎯 O que faz:
+Provisiona automaticamente **toda a infraestrutura cloud** necessária (VPC, Kubernetes, Database, etc).
+
+#### ☁️ Provedores Suportados:
+
+| Provider | Kubernetes | Database | Status | Custo/mês |
+|----------|------------|----------|--------|-----------|
+| **AWS** | EKS | RDS PostgreSQL | ✅ Implementado | ~$203 |
+| **Azure** | AKS | Azure PostgreSQL | 📋 Planejado | ~$115 |
+| **GCP** | GKE | Cloud SQL | 📋 Planejado | ~$168 |
+
+#### 📦 Recursos AWS Provisionados:
+
+```hcl
+# VPC e Networking
+- VPC (10.0.0.0/16)
+- 6 Subnets (2 AZs)
+  ├─ 2 Public (NAT, LoadBalancer)
+  ├─ 2 Private (EKS Nodes)
+  └─ 2 Database (RDS)
+- 2 NAT Gateways (HA)
+- Internet Gateway
+- Security Groups
+
+# Kubernetes (EKS)
+- Cluster v1.28
+- Node Group (2-4 nodes)
+- Nodes: t3.medium (2 vCPU, 4GB RAM)
+- Auto-scaling habilitado
+
+# Database (RDS)
+- PostgreSQL 15.4
+- Instance: db.t3.micro
+- Storage: 20GB (auto-scale até 100GB)
+- Backups automáticos (7 dias)
+- Encrypted at rest
+```
+
+#### 🚀 Uso Rápido:
+
+```bash
+# 1. Configurar credenciais
+cd infra/aws
+cp terraform.tfvars.example terraform.tfvars
+# Edite terraform.tfvars
+
+# 2. Provisionar infraestrutura (15-20 min)
+export TF_VAR_db_password="SuaSenhaSegura123!"
+terraform init
+terraform plan
+terraform apply
+
+# 3. Configurar kubectl
+aws eks update-kubeconfig --name tech-challenge-eks --region us-east-1
+
+# 4. Deploy da aplicação
+kubectl apply -f ../../k8s/
+```
+
+📖 **Documentação Completa:** [infra/aws/README.md](infra/aws/README.md)
+
+---
+
+### CI/CD Pipeline
+
+**Localização:** [`/.github/workflows`](.github/workflows/) | **Documentação:** [workflows/README.md](.github/workflows/README.md)
+
+#### 🎯 O que faz:
+Automatiza **todo o ciclo** de desenvolvimento: build, test, security, docker, deploy.
+
+#### 🔄 Fluxo Automático:
+
+```
+Developer Push → GitHub Actions → Production
+     (1s)            (15 min)         (5 min)
+
+┌──────────────────────────────────────────────┐
+│  1. BUILD & TEST (5 min)                     │
+│  ✓ Compile Java 21                           │
+│  ✓ Run unit tests                            │
+│  ✓ Generate coverage report (JaCoCo 80%+)    │
+│  ✓ Upload artifacts                          │
+└──────────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────────┐
+│  2. SECURITY SCAN (2 min)                    │
+│  ✓ OWASP Dependency Check                    │
+│  ✓ SonarQube analysis                        │
+│  ✓ Code quality gates                        │
+└──────────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────────┐
+│  3. DOCKER BUILD (3 min)                     │
+│  ✓ Build multi-platform (amd64, arm64)       │
+│  ✓ Scan vulnerabilities (Trivy)              │
+│  ✓ Push to Docker Hub                        │
+│  ✓ Tag: latest, sha, branch, semver          │
+└──────────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────────┐
+│  4. DEPLOY STAGING (5 min)                   │
+│  ✓ Update K8s manifests                      │
+│  ✓ Deploy to staging cluster                 │
+│  ✓ Wait for rollout                          │
+│  ✓ Run smoke tests                           │
+└──────────────────────────────────────────────┘
+                    ↓
+┌──────────────────────────────────────────────┐
+│  5. DEPLOY PRODUCTION (5 min)                │
+│  ✓ Deploy to production cluster              │
+│  ✓ Zero downtime (RollingUpdate)             │
+│  ✓ Health checks                             │
+│  ✓ Slack notification                        │
+└──────────────────────────────────────────────┘
+```
+
+#### 📋 Workflows Implementados:
+
+| Workflow | Trigger | Descrição | Tempo |
+|----------|---------|-----------|-------|
+| **ci-cd-pipeline.yml** | Push main/develop | Pipeline completo | ~15-20 min |
+| **pull-request.yml** | PR opened | Validação de código | ~5-8 min |
+| **terraform.yml** | Push infra/* | Infraestrutura | ~2-20 min |
+| **release.yml** | Tag v*.*.* | Release automático | ~10 min |
+
+#### 🔐 Secrets Necessários:
+
+```bash
+# Docker Hub
+DOCKER_USERNAME=seu-usuario
+DOCKER_PASSWORD=dckr_pat_xxxxx
+
+# Kubernetes
+KUBE_CONFIG_STAGING=<base64>
+KUBE_CONFIG_PRODUCTION=<base64>
+
+# AWS (Terraform)
+AWS_ACCESS_KEY_ID=AKIA...
+AWS_SECRET_ACCESS_KEY=xxx...
+DB_PASSWORD=xxx...
+
+# Notificações (Opcional)
+SLACK_WEBHOOK=https://hooks.slack.com/...
+SONAR_TOKEN=sqp_...
+```
+
+#### 🚀 Primeiro Deploy:
+
+```bash
+# 1. Configurar secrets no GitHub
+# Settings → Secrets and variables → Actions
+
+# 2. Criar ambientes
+# Settings → Environments
+# Crie: staging, production
+
+# 3. Push para main
+git add .
+git commit -m "feat: initial setup"
+git push origin main
+
+# 4. Acompanhar em Actions
+# GitHub → Actions → CI/CD Pipeline
+```
+
+📖 **Documentação Completa:** [.github/SETUP_SECRETS.md](.github/SETUP_SECRETS.md)
+
+---
+
+### 🔗 Integração Completa
+
+**Como tudo se conecta:**
+
+1. **Developer** faz push no repositório
+2. **GitHub Actions** inicia automaticamente:
+   - Compila e testa o código
+   - Cria imagem Docker
+   - Faz deploy no Kubernetes
+3. **Kubernetes** recebe a nova imagem:
+   - Atualiza pods gradualmente (RollingUpdate)
+   - HPA monitora e escala se necessário
+   - Health checks garantem disponibilidade
+4. **Aplicação** conecta ao banco de dados:
+   - RDS PostgreSQL (provisionado pelo Terraform)
+   - Credenciais via Kubernetes Secrets
+   - Connection pooling otimizado
+
+**Resultado:** Deploy automatizado em **~15-20 minutos** com **zero downtime**!
+
+---
+
+### 📊 Ambientes
+
+| Ambiente | Branch | Cluster | Deploy | Aprovação |
+|----------|--------|---------|--------|-----------|
+| **Development** | feature/* | Local (Docker Compose) | Manual | - |
+| **Staging** | develop | EKS/AKS/GKE Staging | Automático | - |
+| **Production** | main | EKS/AKS/GKE Production | Automático | 2 reviewers |
+
+---
+
+### 💡 Benefícios da Arquitetura
+
+✅ **Automação:** 95%+ do processo automatizado  
+✅ **Escalabilidade:** Auto-scaling de 1 a 5 pods  
+✅ **Alta Disponibilidade:** Multi-AZ, múltiplas réplicas  
+✅ **Zero Downtime:** Rolling updates  
+✅ **Segurança:** Scans automáticos, secrets management  
+✅ **Observabilidade:** Logs, métricas, health checks  
+✅ **Reprodutibilidade:** Infraestrutura como código  
+✅ **Velocidade:** Deploy em 15-20 minutos  
+
+---
+
+### 📚 Documentação Detalhada
+
+- **Kubernetes:** [KUBERNETES.md](KUBERNETES.md) | [k8s/README.md](k8s/README.md)
+- **Terraform:** [infra/TERRAFORM.md](infra/TERRAFORM.md) | [infra/aws/README.md](infra/aws/README.md)
+- **CI/CD:** [.github/workflows/README.md](.github/workflows/README.md) | [.github/SETUP_SECRETS.md](.github/SETUP_SECRETS.md)
+
+---
+
 ## 🚀 Tecnologias
 
 ### Backend
@@ -66,10 +412,13 @@ O **Tech Challenge** é uma aplicação completa de gerenciamento de oficina mec
 - **JaCoCo** - Cobertura de código (target: 80%)
 - **Spring Boot Test** - Testes de integração
 
-### DevOps
+### DevOps & Cloud
 - **Docker** - Containerização
-- **Docker Compose** - Orquestração de containers
-- **Maven** - Gerenciamento de dependências
+- **Docker Compose** - Orquestração local
+- **Kubernetes** - Orquestração em produção (EKS/AKS/GKE)
+- **Terraform** - Infraestrutura como código (IaC)
+- **GitHub Actions** - CI/CD Pipeline
+- **Maven** - Gerenciamento de dependências e build
 
 ---
 
