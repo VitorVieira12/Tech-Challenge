@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tech-challenge-service
+  namespace: tech-challenge
+  labels:
+    app: tech-challenge
+spec:
+  type: LoadBalancer  # Use NodePort para Minikube ou ClusterIP com Ingress
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: tech-challenge
+  sessionAffinity: ClientIP  # Mantém o cliente na mesma réplica
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800  # 3 horas
+

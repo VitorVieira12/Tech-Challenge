@@ -1,0 +1,55 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tech-challenge-hpa
+  namespace: tech-challenge
+  labels:
+    app: tech-challenge
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tech-challenge-app
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  # Escalar baseado no uso de CPU
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70  # Escala quando CPU > 70%
+  
+  # Escalar baseado no uso de Memória (opcional, mas recomendado)
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80  # Escala quando Memória > 80%
+  
+  # Comportamento de escalonamento
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Aguarda 5 min antes de reduzir
+      policies:
+      - type: Percent
+        value: 50  # Remove no máximo 50% dos pods por vez
+        periodSeconds: 60
+      - type: Pods
+        value: 1  # Remove no máximo 1 pod por minuto
+        periodSeconds: 60
+      selectPolicy: Min  # Escolhe a política mais conservadora
+    
+    scaleUp:
+      stabilizationWindowSeconds: 0  # Escala imediatamente se necessário
+      policies:
+      - type: Percent
+        value: 100  # Dobra o número de pods se necessário
+        periodSeconds: 30
+      - type: Pods
+        value: 2  # Adiciona no máximo 2 pods a cada 30s
+        periodSeconds: 30
+      selectPolicy: Max  # Escolhe a política mais agressiva
+

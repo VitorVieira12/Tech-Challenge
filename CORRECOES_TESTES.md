@@ -128,3 +128,4 @@ Se tudo estiver correto, você verá:
 - ❌ OrdemDeServicoServiceTest - Pendente
 - ❌ VeiculoServiceTest - Pendente
 
+
