@@ -130,6 +130,12 @@
 		<scope>test</scope>
 	</dependency>
 
+	<!-- Spring Boot Mail for Email Notifications -->
+	<dependency>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-mail</artifactId>
+	</dependency>
+
 	<!-- Mockito for unit testing (already included in spring-boot-starter-test) -->
 	</dependencies>
 

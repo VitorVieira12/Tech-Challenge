@@ -455,6 +455,13 @@ git push origin main
   - `AGUARDANDO_APROVACAO` → `EM_EXECUCAO`
   - `EM_EXECUCAO` → `FINALIZADA` → `ENTREGUE`
 
+- **Notificações Automáticas** (**FASE 2** ✨):
+  - 📧 **Email automático** ao cliente quando status muda
+  - Verifica se contato é email (não envia para telefones)
+  - Template HTML profissional e responsivo
+  - Processamento assíncrono (não bloqueia aplicação)
+  - Modo dev/prod configurável
+
 - **Consulta Pública**:
   - Clientes podem consultar suas OSs via CPF/CNPJ
   - Endpoint público (sem JWT)
@@ -821,11 +828,22 @@ Já configurado no `docker-compose.yml`. Para personalizar, edite o arquivo:
 
 ```yaml
 environment:
+  # Database
   SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tech_challenge
   SPRING_DATASOURCE_USERNAME: postgres
   SPRING_DATASOURCE_PASSWORD: 123456
+  
+  # JWT
   JWT_SECRET: sua_chave_secreta_aqui
   JWT_EXPIRATION: 86400000
+  
+  # Email (Fase 2)
+  MAIL_HOST: smtp.gmail.com
+  MAIL_PORT: 587
+  MAIL_USERNAME: seu-email@gmail.com
+  MAIL_PASSWORD: sua-senha-app
+  MAIL_FROM: noreply@techchallenge.com
+  EMAIL_ENABLED: false  # true para produção
 ```
 
 ### Execução Local
@@ -833,12 +851,27 @@ environment:
 Configure no `application.yml` ou via variáveis de ambiente:
 
 ```bash
+# Database
 export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/tech_challenge
 export SPRING_DATASOURCE_USERNAME=postgres
 export SPRING_DATASOURCE_PASSWORD=123456
+
+# JWT
 export JWT_SECRET=sua_chave_secreta
 export JWT_EXPIRATION=86400000
+
+# Email (Fase 2)
+export MAIL_HOST=smtp.gmail.com
+export MAIL_PORT=587
+export MAIL_USERNAME=seu-email@gmail.com
+export MAIL_PASSWORD=sua-senha-app
+export EMAIL_ENABLED=false  # true para produção
 ```
+
+**📧 Configuração de Email:**
+- Em **desenvolvimento**: `EMAIL_ENABLED=false` (apenas loga, não envia)
+- Em **produção**: `EMAIL_ENABLED=true` + configure credenciais SMTP
+- Veja [EMAIL_NOTIFICATION.md](EMAIL_NOTIFICATION.md) para detalhes
 
 ---
 
@@ -881,9 +914,21 @@ docker info
 
 ## 📖 Documentação Adicional
 
+### Fase 2 - Novidades
+- **[EMAIL_NOTIFICATION.md](EMAIL_NOTIFICATION.md)** - 📧 Sistema de notificações por email
+- **[FASE2_CHECKLIST_FINAL.md](FASE2_CHECKLIST_FINAL.md)** - ✅ Checklist completo da Fase 2
+- **[FASE2_IMPLEMENTACAO_COMPLETA.md](FASE2_IMPLEMENTACAO_COMPLETA.md)** - Resumo da implementação
+
+### Gestão de OS
 - **[GESTAO_OS_GUIDE.md](GESTAO_OS_GUIDE.md)** - Guia completo de Gestão de OS
 - **[TESTE_RAPIDO_GESTAO_OS.md](TESTE_RAPIDO_GESTAO_OS.md)** - Testes práticos
+- **[CHANGELOG_GESTAO_OS.md](CHANGELOG_GESTAO_OS.md)** - Histórico de mudanças
+
+### APIs
 - **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Referência da API
 - **[API_EXAMPLES.http](API_EXAMPLES.http)** - Exemplos HTTP
-- **[CHANGELOG_GESTAO_OS.md](CHANGELOG_GESTAO_OS.md)** - Histórico de mudanças
+
+### Arquitetura
+- **[ARQUITETURA.md](ARQUITETURA.md)** - Arquitetura completa
+- **[ARQUITETURA_VALUE_OBJECTS.md](ARQUITETURA_VALUE_OBJECTS.md)** - Value Objects
 - **[RESUMO_IMPLEMENTACAO.md](RESUMO_IMPLEMENTACAO.md)** - Resumo técnico

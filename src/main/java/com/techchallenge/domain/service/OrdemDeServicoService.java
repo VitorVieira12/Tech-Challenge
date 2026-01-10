@@ -41,6 +41,7 @@ public class OrdemDeServicoService {
     private final VeiculoRepository veiculoRepository;
     private final ServicoRepository servicoRepository;
     private final PecaInsumoRepository pecaInsumoRepository;
+    private final EmailNotificationService emailNotificationService;
 
     @Transactional
     public OrdemDeServicoResponseDTO criarOS(OrdemDeServicoInputDTO dto) {
@@ -262,6 +263,11 @@ public class OrdemDeServicoService {
                     log.info("Data de entrega definida: {}", agora);
                 }
                 break;
+            case RECEBIDA:
+            case EM_DIAGNOSTICO:
+            case AGUARDANDO_APROVACAO:
+                // Não há data específica para estes status
+                break;
         }
 
         if (statusUpdateDTO.getObservacao() != null && !statusUpdateDTO.getObservacao().isBlank()) {
@@ -273,6 +279,9 @@ public class OrdemDeServicoService {
         
         OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
         log.info("Status da OS {} atualizado com sucesso de {} para {}", id, statusAtual, novoStatus);
+        
+        // FASE 2: Enviar notificação por email ao cliente
+        emailNotificationService.notificarMudancaStatusOS(osSalva);
         
         return OrdemDeServicoResponseDTO.fromEntity(osSalva);
     }

@@ -42,6 +42,9 @@ class OrdemDeServicoServiceTest {
     @Mock
     private PecaInsumoRepository pecaInsumoRepository;
 
+    @Mock
+    private com.techchallenge.domain.service.EmailNotificationService emailNotificationService;
+
     @InjectMocks
     private OrdemDeServicoService ordemDeServicoService;
 
@@ -168,6 +171,7 @@ class OrdemDeServicoServiceTest {
         assertThat(os.getDataInicioExecucao()).isNotNull();
         verify(ordemDeServicoRepository).findById(1L);
         verify(ordemDeServicoRepository).save(os);
+        verify(emailNotificationService).notificarMudancaStatusOS(any(OrdemDeServico.class));
     }
 
     @Test

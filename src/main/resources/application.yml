@@ -34,8 +34,31 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
 
+# Email Configuration (Fase 2 - Notificações)
+spring.mail:
+  host: ${MAIL_HOST:smtp.gmail.com}
+  port: ${MAIL_PORT:587}
+  username: ${MAIL_USERNAME:seu-email@gmail.com}
+  password: ${MAIL_PASSWORD:sua-senha-app}
+  from: ${MAIL_FROM:noreply@techchallenge.com}
+  properties:
+    mail:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+        connectiontimeout: 5000
+        timeout: 5000
+        writetimeout: 5000
+
+# Habilitar/desabilitar envio de emails (útil para dev/test)
+app:
+  email:
+    enabled: ${EMAIL_ENABLED:false}  # true para produção, false para dev (apenas loga)
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.techchallenge.security: DEBUG
+    com.techchallenge.domain.service.EmailNotificationService: INFO
