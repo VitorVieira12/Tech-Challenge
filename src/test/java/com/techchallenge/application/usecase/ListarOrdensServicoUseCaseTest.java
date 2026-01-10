@@ -55,7 +55,6 @@ class ListarOrdensServicoUseCaseTest {
     @Test
     @DisplayName("Deve listar OS em andamento excluindo finalizadas e entregues")
     void deveListarOsEmAndamentoExcluindoFinalizadasEEntregues() {
-        // Arrange
         List<OrdemDeServico> ordensEmAndamento = Arrays.asList(
                 criarOS(1L, StatusOrdemServico.EM_EXECUCAO, agora.minusDays(5)),
                 criarOS(2L, StatusOrdemServico.AGUARDANDO_APROVACAO, agora.minusDays(3)),
@@ -64,10 +63,8 @@ class ListarOrdensServicoUseCaseTest {
 
         when(ordemDeServicoRepository.findOrdensEmAndamento()).thenReturn(ordensEmAndamento);
 
-        // Act
         List<OrdemDeServicoResponseDTO> resultado = listarOrdensServicoUseCase.executar();
 
-        // Assert
         assertThat(resultado).hasSize(3);
         verify(ordemDeServicoRepository).findOrdensEmAndamento();
     }
@@ -75,7 +72,6 @@ class ListarOrdensServicoUseCaseTest {
     @Test
     @DisplayName("Deve ordenar por prioridade de status: EM_EXECUCAO primeiro")
     void deveOrdenarPorPrioridadeDeStatusEmExecucaoPrimeiro() {
-        // Arrange
         List<OrdemDeServico> ordens = Arrays.asList(
                 criarOS(1L, StatusOrdemServico.RECEBIDA, agora.minusDays(5)),
                 criarOS(2L, StatusOrdemServico.EM_EXECUCAO, agora.minusDays(1)),
@@ -84,10 +80,8 @@ class ListarOrdensServicoUseCaseTest {
 
         when(ordemDeServicoRepository.findOrdensEmAndamento()).thenReturn(ordens);
 
-        // Act
         List<OrdemDeServicoResponseDTO> resultado = listarOrdensServicoUseCase.executar();
 
-        // Assert
         assertThat(resultado).hasSize(3);
         assertThat(resultado.get(0).getStatus()).isEqualTo(StatusOrdemServico.EM_EXECUCAO);
         assertThat(resultado.get(1).getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
@@ -97,7 +91,6 @@ class ListarOrdensServicoUseCaseTest {
     @Test
     @DisplayName("Deve ordenar por data dentro do mesmo status: mais antigas primeiro")
     void deveOrdenarPorDataDentroDoMesmoStatusMaisAntigasPrimeiro() {
-        // Arrange
         List<OrdemDeServico> ordens = Arrays.asList(
                 criarOS(1L, StatusOrdemServico.EM_EXECUCAO, agora.minusDays(1)),  // Mais recente
                 criarOS(2L, StatusOrdemServico.EM_EXECUCAO, agora.minusDays(5)),  // Mais antiga
@@ -106,10 +99,8 @@ class ListarOrdensServicoUseCaseTest {
 
         when(ordemDeServicoRepository.findOrdensEmAndamento()).thenReturn(ordens);
 
-        // Act
         List<OrdemDeServicoResponseDTO> resultado = listarOrdensServicoUseCase.executar();
 
-        // Assert
         assertThat(resultado).hasSize(3);
         assertThat(resultado.get(0).getId()).isEqualTo(2L); // Mais antiga (5 dias)
         assertThat(resultado.get(1).getId()).isEqualTo(3L); // Meio termo (3 dias)
@@ -119,13 +110,10 @@ class ListarOrdensServicoUseCaseTest {
     @Test
     @DisplayName("Deve retornar lista vazia quando não há OS em andamento")
     void deveRetornarListaVaziaQuandoNaoHaOsEmAndamento() {
-        // Arrange
         when(ordemDeServicoRepository.findOrdensEmAndamento()).thenReturn(Arrays.asList());
 
-        // Act
         List<OrdemDeServicoResponseDTO> resultado = listarOrdensServicoUseCase.executar();
 
-        // Assert
         assertThat(resultado).isEmpty();
         verify(ordemDeServicoRepository).findOrdensEmAndamento();
     }
@@ -133,7 +121,6 @@ class ListarOrdensServicoUseCaseTest {
     @Test
     @DisplayName("Deve ordenar corretamente mix de status e datas")
     void deveOrdenarCorretamenteMixDeStatusEDatas() {
-        // Arrange
         List<OrdemDeServico> ordens = Arrays.asList(
                 criarOS(1L, StatusOrdemServico.RECEBIDA, agora.minusDays(10)),            // Prioridade 4, mais antiga
                 criarOS(2L, StatusOrdemServico.EM_EXECUCAO, agora.minusDays(2)),          // Prioridade 1, recente
@@ -145,23 +132,17 @@ class ListarOrdensServicoUseCaseTest {
 
         when(ordemDeServicoRepository.findOrdensEmAndamento()).thenReturn(ordens);
 
-        // Act
         List<OrdemDeServicoResponseDTO> resultado = listarOrdensServicoUseCase.executar();
 
-        // Assert
         assertThat(resultado).hasSize(6);
         
-        // EM_EXECUCAO (prioridade 1) - mais antigas primeiro
         assertThat(resultado.get(0).getId()).isEqualTo(5L); // 8 dias
         assertThat(resultado.get(1).getId()).isEqualTo(2L); // 2 dias
         
-        // AGUARDANDO_APROVACAO (prioridade 2)
         assertThat(resultado.get(2).getId()).isEqualTo(3L); // 7 dias
         
-        // EM_DIAGNOSTICO (prioridade 3)
         assertThat(resultado.get(3).getId()).isEqualTo(4L); // 5 dias
         
-        // RECEBIDA (prioridade 4) - mais antigas primeiro
         assertThat(resultado.get(4).getId()).isEqualTo(1L); // 10 dias
         assertThat(resultado.get(5).getId()).isEqualTo(6L); // 3 dias
     }

@@ -35,11 +35,9 @@ public class AprovarOrcamentoUseCase {
         log.info("Processando aprovação de orçamento para OS {}: {}", osId, 
                 input.getAprovado() ? "APROVADO" : "RECUSADO");
 
-        // Buscar OS
         OrdemDeServico os = ordemDeServicoRepository.findById(osId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço", osId));
 
-        // Validar status atual
         if (os.getStatus() != StatusOrdemServico.AGUARDANDO_APROVACAO) {
             throw new IllegalStateException(
                     String.format("Ordem de Serviço %d não está aguardando aprovação. Status atual: %s", 
@@ -50,7 +48,6 @@ public class AprovarOrcamentoUseCase {
         LocalDateTime agora = LocalDateTime.now();
 
         if (input.getAprovado()) {
-            // Orçamento APROVADO - iniciar execução
             os.setStatus(StatusOrdemServico.EM_EXECUCAO);
             os.setDataInicioExecucao(agora);
             
@@ -63,7 +60,6 @@ public class AprovarOrcamentoUseCase {
             log.info("✅ Orçamento da OS {} APROVADO. Iniciando execução.", osId);
             
         } else {
-            // Orçamento RECUSADO - voltar para recebida
             os.setStatus(StatusOrdemServico.RECEBIDA);
             
             String motivoRecusa = input.getMotivoRecusa() != null && !input.getMotivoRecusa().isBlank()
@@ -83,7 +79,6 @@ public class AprovarOrcamentoUseCase {
         
         log.info("Aprovação processada com sucesso para OS {}", osId);
         
-        // FASE 2: Enviar notificação por email ao cliente
         emailNotificationService.notificarMudancaStatusOS(osSalva);
         
         return OrdemDeServicoResponseDTO.fromEntity(osSalva);

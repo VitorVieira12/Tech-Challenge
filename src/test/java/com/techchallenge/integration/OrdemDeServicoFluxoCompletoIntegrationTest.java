@@ -49,13 +49,11 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        // Limpar base de dados
         ordemDeServicoRepository.deleteAll();
         pecaInsumoRepository.deleteAll();
         servicoRepository.deleteAll();
         clienteRepository.deleteAll();
 
-        // Obter token JWT
         LoginRequestDTO loginRequest = new LoginRequestDTO("admin", "admin");
         MvcResult loginResult = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -67,14 +65,12 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
         LoginResponseDTO response = objectMapper.readValue(loginResponse, LoginResponseDTO.class);
         jwtToken = response.getToken();
 
-        // Criar dados de teste
         criarDadosDeTeste();
     }
 
     @Test
     @DisplayName("Fluxo Completo: Abertura de OS → Aprovação → Listagem Ordenada")
     void deveExecutarFluxoCompletoDeOS() throws Exception {
-        // ========== PASSO 1: CRIAR ORDEM DE SERVIÇO ==========
         OrdemDeServicoInputDTO osInput = criarInputOSCompleta();
 
         MvcResult createResult = mockMvc.perform(post("/api/ordens-servico")
@@ -94,7 +90,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
         assertThat(osId).isNotNull();
         assertThat(osCreated.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
 
-        // ========== PASSO 2: APROVAR ORÇAMENTO ==========
         AprovacaoOrcamentoInputDTO aprovacaoInput = new AprovacaoOrcamentoInputDTO(true, null);
 
         mockMvc.perform(post("/api/ordens-servico/" + osId + "/aprovar-orcamento")
@@ -106,7 +101,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.dataInicioExecucao").exists())
                 .andExpect(jsonPath("$.observacoes").value(org.hamcrest.Matchers.containsString("APROVADO")));
 
-        // ========== PASSO 3: LISTAR OS EM ANDAMENTO COM ORDENAÇÃO ==========
         mockMvc.perform(get("/api/ordens-servico/em-andamento")
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
@@ -114,7 +108,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$[0].id").value(osId))
                 .andExpect(jsonPath("$[0].status").value("EM_EXECUCAO"));
 
-        // ========== PASSO 4: CONSULTAR STATUS PÚBLICO (SEM AUTENTICAÇÃO) ==========
         mockMvc.perform(get("/api/ordens-servico/status/" + osId)
                         .param("cpfCnpj", "11144477735"))
                 .andExpect(status().isOk())
@@ -126,12 +119,10 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve ordenar OS por prioridade de status")
     void deveOrdenarOsPorPrioridadeDeStatus() throws Exception {
-        // Criar múltiplas OS com diferentes status
         OrdemDeServicoInputDTO os1 = criarInputOSCompleta();
         OrdemDeServicoInputDTO os2 = criarInputOSCompleta();
         OrdemDeServicoInputDTO os3 = criarInputOSCompleta();
 
-        // Criar OS 1 (RECEBIDA)
         MvcResult result1 = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + jwtToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +131,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                 .andReturn();
         Long osId1 = objectMapper.readValue(result1.getResponse().getContentAsString(), OrdemDeServicoResponseDTO.class).getId();
 
-        // Criar OS 2 (AGUARDANDO_APROVACAO - status padrão após criação)
         MvcResult result2 = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + jwtToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -149,7 +139,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                 .andReturn();
         Long osId2 = objectMapper.readValue(result2.getResponse().getContentAsString(), OrdemDeServicoResponseDTO.class).getId();
 
-        // Criar OS 3 e aprovar (EM_EXECUCAO)
         MvcResult result3 = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + jwtToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -158,7 +147,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                 .andReturn();
         Long osId3 = objectMapper.readValue(result3.getResponse().getContentAsString(), OrdemDeServicoResponseDTO.class).getId();
 
-        // Aprovar OS 3
         AprovacaoOrcamentoInputDTO aprovacao = new AprovacaoOrcamentoInputDTO(true, null);
         mockMvc.perform(post("/api/ordens-servico/" + osId3 + "/aprovar-orcamento")
                         .header("Authorization", "Bearer " + jwtToken)
@@ -166,7 +154,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(aprovacao)))
                 .andExpect(status().isOk());
 
-        // Recusar OS 1 (volta para RECEBIDA)
         AprovacaoOrcamentoInputDTO recusa = new AprovacaoOrcamentoInputDTO(false, "Valor alto");
         mockMvc.perform(post("/api/ordens-servico/" + osId1 + "/aprovar-orcamento")
                         .header("Authorization", "Bearer " + jwtToken)
@@ -174,7 +161,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(recusa)))
                 .andExpect(status().isOk());
 
-        // Listar em andamento - deve vir ordenado: EM_EXECUCAO > AGUARDANDO_APROVACAO > RECEBIDA
         mockMvc.perform(get("/api/ordens-servico/em-andamento")
                         .header("Authorization", "Bearer " + jwtToken))
                 .andExpect(status().isOk())
@@ -187,7 +173,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve rejeitar aprovação de OS que não está aguardando aprovação")
     void deveRejeitarAprovacaoDeOsQueNaoEstaAguardandoAprovacao() throws Exception {
-        // Criar e aprovar OS
         OrdemDeServicoInputDTO osInput = criarInputOSCompleta();
         MvcResult createResult = mockMvc.perform(post("/api/ordens-servico")
                         .header("Authorization", "Bearer " + jwtToken)
@@ -198,7 +183,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
         
         Long osId = objectMapper.readValue(createResult.getResponse().getContentAsString(), OrdemDeServicoResponseDTO.class).getId();
 
-        // Aprovar primeira vez
         AprovacaoOrcamentoInputDTO aprovacao = new AprovacaoOrcamentoInputDTO(true, null);
         mockMvc.perform(post("/api/ordens-servico/" + osId + "/aprovar-orcamento")
                         .header("Authorization", "Bearer " + jwtToken)
@@ -206,7 +190,6 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(aprovacao)))
                 .andExpect(status().isOk());
 
-        // Tentar aprovar novamente - deve falhar
         mockMvc.perform(post("/api/ordens-servico/" + osId + "/aprovar-orcamento")
                         .header("Authorization", "Bearer " + jwtToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -214,23 +197,19 @@ class OrdemDeServicoFluxoCompletoIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().is5xxServerError());
     }
 
-    // ==================== MÉTODOS AUXILIARES ====================
 
     private void criarDadosDeTeste() {
-        // Criar cliente
         Cliente cliente = new Cliente();
         cliente.setNome("João Silva Teste");
         cliente.setCpfCnpj(new CpfCnpj("11144477735"));
         cliente.setContato(new Contato("joao@teste.com"));
         clienteRepository.save(cliente);
 
-        // Criar serviço
         Servico servico = new Servico();
         servico.setDescricao("Troca de óleo");
         servico.setPreco(new ValorMonetario(new BigDecimal("150.00")));
         servicoRepository.save(servico);
 
-        // Criar peça
         PecaInsumo peca = new PecaInsumo();
         peca.setNome("Filtro de óleo");
         peca.setPreco(new ValorMonetario(new BigDecimal("45.90")));

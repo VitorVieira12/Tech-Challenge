@@ -22,13 +22,10 @@ public class Contato implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
-    // Padrão para validação de email (RFC 5322 simplificado)
     private static final Pattern PATTERN_EMAIL = Pattern.compile(
         "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$"
     );
     
-    // Padrão para telefone brasileiro (com ou sem formatação)
-    // Aceita: (11) 98888-7777, 11988887777, +5511988887777, etc
     private static final Pattern PATTERN_TELEFONE = Pattern.compile(
         "^(?:\\+?55)?\\s?\\(?\\d{2}\\)?\\s?9?\\d{4}-?\\d{4}$"
     );
@@ -72,10 +69,8 @@ public class Contato implements Serializable {
     }
     
     private String limparTelefone(String telefone) {
-        // Remove todos os caracteres não numéricos exceto o + no início
         String limpo = telefone.replaceAll("[^0-9+]", "");
         
-        // Se começar com +55, remove para padronizar
         if (limpo.startsWith("+55")) {
             limpo = limpo.substring(3);
         } else if (limpo.startsWith("55") && limpo.length() > 11) {
@@ -89,7 +84,6 @@ public class Contato implements Serializable {
         if (tipo == TipoContato.EMAIL) {
             return valor;
         } else {
-            // Formata telefone brasileiro
             if (valor.length() == 11) {
                 return String.format("(%s) %s-%s",
                         valor.substring(0, 2),

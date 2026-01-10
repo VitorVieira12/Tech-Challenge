@@ -24,7 +24,6 @@ public class Servico {
     @AttributeOverride(name = "valor", column = @Column(name = "preco", nullable = false, precision = 10, scale = 2))
     private ValorMonetario preco;
 
-    // Construtor para facilitar a criação com Value Objects
     public Servico(String descricao, ValorMonetario preco) {
         this.descricao = descricao;
         this.preco = preco;

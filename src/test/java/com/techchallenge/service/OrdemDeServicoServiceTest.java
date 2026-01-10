@@ -227,7 +227,6 @@ class OrdemDeServicoServiceTest {
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
 
-        // Usando um CPF válido mas diferente do cliente (cliente usa 11144477735)
         assertThatThrownBy(() -> ordemDeServicoService.consultarStatusPublico(1L, "52998224725"))
                 .isInstanceOf(ResourceNotFoundException.class);
         

@@ -186,7 +186,6 @@ class ServicoControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("Deve validar campos obrigatórios")
     void deveValidarCamposObrigatorios() throws Exception {
         ServicoDTO servicoDTO = new ServicoDTO();
-        // Deixar descrição e preço vazios
 
         mockMvc.perform(post("/api/servicos")
                         .header("Authorization", "Bearer " + jwtToken)

@@ -44,7 +44,6 @@ public class EmailNotificationService {
     public void notificarMudancaStatusOS(OrdemDeServico os) {
         Cliente cliente = os.getCliente();
         
-        // Verificar se o cliente tem contato e se é email
         if (cliente.getContato() == null) {
             log.warn("Cliente {} não possui contato cadastrado. Email não enviado.", cliente.getId());
             return;
@@ -58,7 +57,6 @@ public class EmailNotificationService {
             return;
         }
 
-        // Se emails estão desabilitados, apenas loga
         if (!emailEnabled) {
             log.info("📧 [SIMULAÇÃO] Email seria enviado para: {} - OS #{} alterada para status: {}", 
                     cliente.getContato().getValor(), 
@@ -142,18 +140,15 @@ public class EmailNotificationService {
         html.append("<body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>");
         html.append("<div style='max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px;'>");
         
-        // Header
         html.append("<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;'>");
         html.append("<h2 style='margin: 0;'>🔧 Tech Challenge Oficina</h2>");
         html.append("<p style='margin: 5px 0 0 0; font-size: 14px;'>Atualização da sua Ordem de Serviço</p>");
         html.append("</div>");
         
-        // Content
         html.append("<div style='padding: 30px; background: #f9f9f9;'>");
         html.append(String.format("<h3 style='color: #667eea; margin-top: 0;'>Olá, %s! 👋</h3>", os.getCliente().getNome()));
         html.append("<p>Sua ordem de serviço foi atualizada:</p>");
         
-        // Status Badge
         html.append("<div style='background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>");
         html.append(String.format("<p style='margin: 0 0 10px 0;'><strong>Status Atual:</strong></p>"));
         html.append(String.format("<div style='background: %s; color: white; padding: 12px 20px; border-radius: 6px; display: inline-block; font-weight: bold;'>", statusColor));
@@ -161,7 +156,6 @@ public class EmailNotificationService {
         html.append("</div>");
         html.append("</div>");
         
-        // Detalhes
         html.append("<div style='background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>");
         html.append(String.format("<p style='margin: 8px 0;'><strong>OS #:</strong> %d</p>", os.getId()));
         html.append(String.format("<p style='margin: 8px 0;'><strong>Veículo:</strong> %s - %s</p>", 
@@ -186,7 +180,6 @@ public class EmailNotificationService {
         
         html.append("</div>");
         
-        // Observações
         if (os.getObservacoes() != null && !os.getObservacoes().isBlank()) {
             html.append("<div style='background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);'>");
             html.append("<p style='margin: 0 0 10px 0;'><strong>Observações:</strong></p>");
@@ -195,7 +188,6 @@ public class EmailNotificationService {
             html.append("</div>");
         }
         
-        // Footer
         html.append("<div style='text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;'>");
         html.append("<p style='margin: 5px 0; color: #666; font-size: 14px;'>Para consultar sua OS, acesse:</p>");
         html.append("<p style='margin: 5px 0;'><a href='http://localhost:8080/swagger-ui.html' style='color: #667eea; text-decoration: none; font-weight: bold;'>Portal do Cliente</a></p>");

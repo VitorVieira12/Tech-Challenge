@@ -22,10 +22,8 @@ public class Placa implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
-    // Padrão formato antigo: ABC1234
     private static final Pattern FORMATO_ANTIGO = Pattern.compile("^[A-Z]{3}\\d{4}$");
     
-    // Padrão formato Mercosul: ABC1D23
     private static final Pattern FORMATO_MERCOSUL = Pattern.compile("^[A-Z]{3}\\d[A-Z]\\d{2}$");
     
     @Column(name = "placa", nullable = false, unique = true, length = 10)
@@ -40,7 +38,6 @@ public class Placa implements Serializable {
             throw new DomainValidationException("Placa não pode ser nula ou vazia");
         }
         
-        // Converte para maiúsculas e remove espaços
         String placaLimpa = placa.trim().toUpperCase().replaceAll("[^A-Z0-9]", "");
         
         if (!FORMATO_ANTIGO.matcher(placaLimpa).matches() && 

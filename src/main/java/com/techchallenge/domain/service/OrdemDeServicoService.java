@@ -266,7 +266,6 @@ public class OrdemDeServicoService {
             case RECEBIDA:
             case EM_DIAGNOSTICO:
             case AGUARDANDO_APROVACAO:
-                // Não há data específica para estes status
                 break;
         }
 
@@ -280,7 +279,6 @@ public class OrdemDeServicoService {
         OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
         log.info("Status da OS {} atualizado com sucesso de {} para {}", id, statusAtual, novoStatus);
         
-        // FASE 2: Enviar notificação por email ao cliente
         emailNotificationService.notificarMudancaStatusOS(osSalva);
         
         return OrdemDeServicoResponseDTO.fromEntity(osSalva);

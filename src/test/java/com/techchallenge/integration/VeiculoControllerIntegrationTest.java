@@ -58,7 +58,6 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         LoginResponseDTO response = objectMapper.readValue(loginResponse, LoginResponseDTO.class);
         jwtToken = response.getToken();
 
-        // Criar cliente para usar nos testes
         cliente = new Cliente();
         cliente.setNome("João Silva");
         cliente.setCpfCnpj(new CpfCnpj("11144477735"));
@@ -212,7 +211,6 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         veiculo1.setCliente(cliente);
         veiculoRepository.save(veiculo1);
 
-        // Criar outro cliente
         Cliente outroCliente = new Cliente();
         outroCliente.setNome("Maria Santos");
         outroCliente.setCpfCnpj(new CpfCnpj("52998224725"));

@@ -50,7 +50,6 @@ public class ValorMonetario implements Serializable, Comparable<ValorMonetario> 
             throw new DomainValidationException("Valor monetário não pode ser negativo");
         }
         
-        // Valida a quantidade máxima de dígitos
         if (valor.precision() - valor.scale() > 8) {
             throw new DomainValidationException("Valor monetário excede o limite permitido");
         }

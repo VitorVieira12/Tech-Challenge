@@ -33,7 +33,6 @@ public class CpfCnpj implements Serializable {
             throw new DomainValidationException("CPF/CNPJ não pode ser nulo ou vazio");
         }
         
-        // Remove caracteres não numéricos
         String documentoLimpo = documento.replaceAll("[^0-9]", "");
         
         if (documentoLimpo.length() == 11) {
@@ -48,12 +47,10 @@ public class CpfCnpj implements Serializable {
     }
     
     private void validarCpf(String cpf) {
-        // Verifica se todos os dígitos são iguais
         if (cpf.matches("(\\d)\\1{10}")) {
             throw new DomainValidationException("CPF inválido");
         }
         
-        // Valida primeiro dígito verificador
         int soma = 0;
         for (int i = 0; i < 9; i++) {
             soma += Character.getNumericValue(cpf.charAt(i)) * (10 - i);
@@ -65,7 +62,6 @@ public class CpfCnpj implements Serializable {
             throw new DomainValidationException("CPF inválido");
         }
         
-        // Valida segundo dígito verificador
         soma = 0;
         for (int i = 0; i < 10; i++) {
             soma += Character.getNumericValue(cpf.charAt(i)) * (11 - i);
@@ -79,12 +75,10 @@ public class CpfCnpj implements Serializable {
     }
     
     private void validarCnpj(String cnpj) {
-        // Verifica se todos os dígitos são iguais
         if (cnpj.matches("(\\d)\\1{13}")) {
             throw new DomainValidationException("CNPJ inválido");
         }
         
-        // Valida primeiro dígito verificador
         int[] pesos1 = {5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
         int soma = 0;
         for (int i = 0; i < 12; i++) {
@@ -96,7 +90,6 @@ public class CpfCnpj implements Serializable {
             throw new DomainValidationException("CNPJ inválido");
         }
         
-        // Valida segundo dígito verificador
         int[] pesos2 = {6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2};
         soma = 0;
         for (int i = 0; i < 13; i++) {

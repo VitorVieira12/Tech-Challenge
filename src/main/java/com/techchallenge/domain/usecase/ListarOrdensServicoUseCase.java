@@ -35,7 +35,6 @@ public class ListarOrdensServicoUseCase {
 
     private final OrdemDeServicoRepository ordemDeServicoRepository;
 
-    // Mapa de prioridades de status (menor = maior prioridade)
     private static final Map<StatusOrdemServico, Integer> PRIORIDADE_STATUS = Map.of(
             StatusOrdemServico.EM_EXECUCAO, 1,
             StatusOrdemServico.AGUARDANDO_APROVACAO, 2,
@@ -47,17 +46,14 @@ public class ListarOrdensServicoUseCase {
     public List<OrdemDeServicoResponseDTO> executar() {
         log.info("Listando OS em andamento com ordenação prioritária");
 
-        // Buscar OS ativas (excluindo finalizadas e entregues)
         List<OrdemDeServico> ordensAtivas = ordemDeServicoRepository.findOrdensEmAndamento();
 
-        // Aplicar ordenação complexa
         List<OrdemDeServico> ordensOrdenadas = ordensAtivas.stream()
                 .sorted(compararPorPrioridadeEData())
                 .collect(Collectors.toList());
 
         log.info("Total de OS em andamento: {} (excluindo finalizadas e entregues)", ordensOrdenadas.size());
 
-        // Converter para DTO
         return ordensOrdenadas.stream()
                 .map(OrdemDeServicoResponseDTO::fromEntity)
                 .collect(Collectors.toList());

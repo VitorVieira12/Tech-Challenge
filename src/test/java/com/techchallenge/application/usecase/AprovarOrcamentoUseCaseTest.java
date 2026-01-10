@@ -66,16 +66,13 @@ class AprovarOrcamentoUseCaseTest {
     @Test
     @DisplayName("Deve aprovar orçamento e mudar status para EM_EXECUCAO")
     void deveAprovarOrcamentoEMudarStatusParaEmExecucao() {
-        // Arrange
         AprovacaoOrcamentoInputDTO input = new AprovacaoOrcamentoInputDTO(true, null);
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(ordemDeServico));
         when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenAnswer(i -> i.getArgument(0));
 
-        // Act
         OrdemDeServicoResponseDTO response = aprovarOrcamentoUseCase.executar(1L, input);
 
-        // Assert
         assertThat(response).isNotNull();
         verify(ordemDeServicoRepository).findById(1L);
         verify(ordemDeServicoRepository).save(argThat(os -> 
@@ -89,16 +86,13 @@ class AprovarOrcamentoUseCaseTest {
     @Test
     @DisplayName("Deve recusar orçamento e mudar status para RECEBIDA")
     void deveRecusarOrcamentoEMudarStatusParaRecebida() {
-        // Arrange
         AprovacaoOrcamentoInputDTO input = new AprovacaoOrcamentoInputDTO(false, "Valor muito alto");
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(ordemDeServico));
         when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenAnswer(i -> i.getArgument(0));
 
-        // Act
         OrdemDeServicoResponseDTO response = aprovarOrcamentoUseCase.executar(1L, input);
 
-        // Assert
         assertThat(response).isNotNull();
         verify(ordemDeServicoRepository).findById(1L);
         verify(ordemDeServicoRepository).save(argThat(os -> 
@@ -112,11 +106,9 @@ class AprovarOrcamentoUseCaseTest {
     @Test
     @DisplayName("Deve lançar exceção quando OS não existe")
     void deveLancarExcecaoQuandoOsNaoExiste() {
-        // Arrange
         AprovacaoOrcamentoInputDTO input = new AprovacaoOrcamentoInputDTO(true, null);
         when(ordemDeServicoRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThatThrownBy(() -> aprovarOrcamentoUseCase.executar(999L, input))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessageContaining("Ordem de Serviço");
@@ -125,13 +117,11 @@ class AprovarOrcamentoUseCaseTest {
     @Test
     @DisplayName("Deve lançar exceção quando OS não está aguardando aprovação")
     void deveLancarExcecaoQuandoOsNaoEstaAguardandoAprovacao() {
-        // Arrange
         ordemDeServico.setStatus(StatusOrdemServico.EM_EXECUCAO);
         AprovacaoOrcamentoInputDTO input = new AprovacaoOrcamentoInputDTO(true, null);
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(ordemDeServico));
 
-        // Act & Assert
         assertThatThrownBy(() -> aprovarOrcamentoUseCase.executar(1L, input))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("não está aguardando aprovação");
@@ -140,16 +130,13 @@ class AprovarOrcamentoUseCaseTest {
     @Test
     @DisplayName("Deve adicionar observação ao recusar sem motivo")
     void deveAdicionarObservacaoAoRecusarSemMotivo() {
-        // Arrange
         AprovacaoOrcamentoInputDTO input = new AprovacaoOrcamentoInputDTO(false, null); // motivoRecusa = null
         
         when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(ordemDeServico));
         when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenAnswer(i -> i.getArgument(0));
 
-        // Act
         aprovarOrcamentoUseCase.executar(1L, input);
 
-        // Assert
         verify(ordemDeServicoRepository).save(argThat(os -> 
             os.getObservacoes().contains("RECUSADO") &&
             os.getObservacoes().contains("Não informado")

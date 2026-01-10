@@ -89,7 +89,6 @@ public class OrdemDeServicoController {
         return ResponseEntity.ok(response);
     }
 
-    // ==================== NOVOS ENDPOINTS - FASE 2 ====================
 
     @PostMapping("/{id}/aprovar-orcamento")
     @Operation(
