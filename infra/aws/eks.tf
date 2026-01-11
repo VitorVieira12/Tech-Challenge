@@ -17,10 +17,13 @@ module "eks" {
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access = true
 
-  # Addons
+  # Addons (apenas essenciais para t3.micro)
   cluster_addons = {
     coredns = {
       most_recent = true
+      configuration_values = jsonencode({
+        computeType = "Fargate"
+      })
     }
     kube-proxy = {
       most_recent = true
@@ -28,15 +31,13 @@ module "eks" {
     vpc-cni = {
       most_recent = true
     }
-    aws-ebs-csi-driver = {
-      most_recent = true
-    }
+    # aws-ebs-csi-driver removido temporariamente para reduzir carga no t3.micro
   }
 
   # Managed Node Groups
   eks_managed_node_groups = {
     main = {
-      name           = "${var.project_name}-${var.environment}-ng"
+      name           = "${var.project_name}-ng"
       instance_types = var.node_instance_types
 
       min_size     = var.node_min_size

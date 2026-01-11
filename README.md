@@ -16,17 +16,18 @@ API RESTful para gerenciamento completo de oficina mecânica, desenvolvida com S
 ## 📋 Índice
 
 - [Sobre o Projeto](#sobre-o-projeto)
+- [🚀 CI/CD Pipeline](#-cicd-pipeline-new)
 - [Arquitetura de Infraestrutura](#-arquitetura-de-infraestrutura)
   - [Visão Geral](#visão-geral)
   - [Kubernetes](#kubernetes-orquestração)
   - [Terraform](#terraform-infraestrutura-como-código)
-  - [CI/CD Pipeline](#cicd-pipeline)
 - [Tecnologias](#tecnologias)
 - [Funcionalidades](#funcionalidades)
 - [Pré-requisitos](#pré-requisitos)
 - [Instalação e Execução](#instalação-e-execução)
   - [Docker Compose](#docker-compose)
   - [Kubernetes](#kubernetes)
+  - [CI/CD Automático](#cicd-automático)
 - [Documentação da API](#documentação-da-api)
 - [Autenticação](#autenticação)
 - [Testes](#testes)
@@ -46,6 +47,66 @@ O **Tech Challenge** é uma aplicação completa de gerenciamento de oficina mec
 - ✅ **Monitoramento** de tempo médio de execução
 - ✅ **Autenticação JWT** para endpoints administrativos
 - ✅ **Documentação interativa** com Swagger/OpenAPI
+
+---
+
+## 🚀 CI/CD Pipeline **NEW!**
+
+Pipeline completa de CI/CD com GitHub Actions + AWS EKS implementada e funcional!
+
+### ⚡ Quick Start (10 minutos)
+
+```bash
+# 1. Configurar AWS e GitHub
+./scripts/setup-cicd.sh
+
+# 2. Adicionar secrets no GitHub
+# (veja guia completo)
+
+# 3. Deploy automático
+git push origin main
+# Pipeline roda automaticamente!
+
+# 4. Verificar deployment
+./scripts/check-deployment.sh
+```
+
+### 📚 Documentação Completa
+
+| Documento | Descrição | Tempo |
+|-----------|-----------|-------|
+| **[CI_CD_QUICKSTART.md](CI_CD_QUICKSTART.md)** | 🚀 Guia Rápido | 10 min |
+| **[CI_CD_SETUP_GUIDE.md](CI_CD_SETUP_GUIDE.md)** | 📖 Guia Completo | 30 min |
+| **[CI_CD_RESUMO_EXECUTIVO.md](CI_CD_RESUMO_EXECUTIVO.md)** | 📊 Resumo para Avaliação | 5 min |
+| **[CI_CD_INDEX.md](CI_CD_INDEX.md)** | 📚 Índice Navegável | - |
+
+### ✅ Pipeline Implementada
+
+```
+Push → Build → Tests → Docker → Terraform → K8s Deploy → ✅
+       (5min)  (2min)  (3min)  (15min*)    (3min)
+
+*Terraform só roda na primeira vez ou em mudanças
+Deploys normais: ~12-14 minutos
+```
+
+### 🔄 Workflows Disponíveis
+
+- ✅ **ci-cd.yml**: Pipeline principal completa
+- ✅ **pr-validation.yml**: Validação automática de PRs
+- ✅ **rollback.yml**: Rollback manual/automático
+
+### 🎯 Funcionalidades
+
+- ✅ Build e testes automatizados
+- ✅ Deploy automático no AWS EKS
+- ✅ Provisionamento de infra (Terraform)
+- ✅ Zero-downtime deployments
+- ✅ Rollback automatizado
+- ✅ Security scanning
+- ✅ Secrets management
+
+**Para mais detalhes:** [CI_CD_README.md](CI_CD_README.md)
 
 ---
 

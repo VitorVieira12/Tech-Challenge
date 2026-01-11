@@ -119,6 +119,7 @@ output "kubeconfig" {
 # Summary
 output "deployment_summary" {
   description = "Resumo do deployment"
+  sensitive   = true
   value = <<-EOT
   
   ========================================

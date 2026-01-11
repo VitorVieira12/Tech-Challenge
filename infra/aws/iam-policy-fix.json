@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeAddressesAttribute",
+                "kms:CreateKey",
+                "kms:DescribeKey",
+                "kms:TagResource",
+                "kms:ListResourceTags",
+                "kms:CreateAlias",
+                "kms:DeleteAlias",
+                "kms:ScheduleKeyDeletion",
+                "logs:CreateLogGroup",
+                "logs:DescribeLogGroups",
+                "logs:TagResource",
+                "logs:PutRetentionPolicy",
+                "logs:DeleteLogGroup"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+

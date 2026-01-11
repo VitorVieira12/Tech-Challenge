@@ -77,19 +77,19 @@ variable "cluster_name" {
 variable "cluster_version" {
   description = "Versão do Kubernetes"
   type        = string
-  default     = "1.28"
+  default     = "1.31"  # Atualizado para versão mais recente suportada
 }
 
 variable "node_instance_types" {
   description = "Tipos de instância EC2 para os nodes"
   type        = list(string)
-  default     = ["t3.medium"]
+  default     = ["t3.micro"]  # Free Tier: t2.micro ou t3.micro (750h/mês)
 }
 
 variable "node_desired_size" {
   description = "Número desejado de nodes"
   type        = number
-  default     = 2
+  default     = 1  # Free Tier: 1 node (750h/mês)
 }
 
 variable "node_min_size" {
@@ -123,7 +123,7 @@ variable "db_identifier" {
 variable "db_engine_version" {
   description = "Versão do PostgreSQL"
   type        = string
-  default     = "15.4"
+  default     = "15.7"  # Versão disponível mais recente
 }
 
 variable "db_instance_class" {
@@ -166,7 +166,7 @@ variable "db_password" {
 variable "db_backup_retention_period" {
   description = "Período de retenção de backups em dias"
   type        = number
-  default     = 7
+  default     = 0  # Free tier: 0 = sem backup automático (economizar custos)
 }
 
 variable "db_backup_window" {

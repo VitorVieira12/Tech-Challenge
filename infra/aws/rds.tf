@@ -69,12 +69,12 @@ resource "aws_db_instance" "postgresql" {
   skip_final_snapshot     = var.db_skip_final_snapshot
   final_snapshot_identifier = var.db_skip_final_snapshot ? null : "${var.db_identifier}-final-snapshot-${formatdate("YYYY-MM-DD-hhmm", timestamp())}"
 
-  # Monitoring
+  # Monitoring (desabilitado para Free Tier)
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
-  monitoring_interval             = 60
-  monitoring_role_arn             = aws_iam_role.rds_monitoring.arn
-  performance_insights_enabled    = true
-  performance_insights_retention_period = 7
+  monitoring_interval             = 0  # Free tier: 0 ou 60 (0 = desabilitado)
+  # monitoring_role_arn não necessário quando monitoring_interval = 0
+  performance_insights_enabled    = false  # Free tier: não disponível
+  # performance_insights_retention_period não necessário quando desabilitado
 
   # Security
   deletion_protection = var.enable_deletion_protection
@@ -135,8 +135,12 @@ resource "aws_iam_role" "rds_monitoring" {
     ]
   })
 
-  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"]
-
   tags = local.common_tags
+}
+
+# Policy Attachment para RDS Enhanced Monitoring
+resource "aws_iam_role_policy_attachment" "rds_monitoring" {
+  role       = aws_iam_role.rds_monitoring.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
 }
 

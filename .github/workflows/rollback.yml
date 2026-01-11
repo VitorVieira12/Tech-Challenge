@@ -1,0 +1,66 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+      revision:
+        description: 'Revision number to rollback to (leave empty for previous)'
+        required: false
+        type: string
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER_NAME: tech-challenge-eks
+
+jobs:
+  rollback:
+    name: Rollback to Previous Version
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔐 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: 🔧 Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.28.0'
+      
+      - name: 🔑 Configure kubectl
+        run: |
+          aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+      
+      - name: ⏮️ Rollback deployment
+        run: |
+          echo "🔄 Rolling back deployment..."
+          
+          if [ -n "${{ github.event.inputs.revision }}" ]; then
+            kubectl rollout undo deployment/tech-challenge-app -n tech-challenge --to-revision=${{ github.event.inputs.revision }}
+          else
+            kubectl rollout undo deployment/tech-challenge-app -n tech-challenge
+          fi
+          
+          echo "⏳ Aguardando rollback completar..."
+          kubectl rollout status deployment/tech-challenge-app -n tech-challenge
+          
+          echo "✅ Rollback concluído com sucesso"
+      
+      - name: 📊 Verify rollback
+        run: |
+          kubectl get pods -n tech-challenge
+          kubectl describe deployment tech-challenge-app -n tech-challenge | grep Image
+
