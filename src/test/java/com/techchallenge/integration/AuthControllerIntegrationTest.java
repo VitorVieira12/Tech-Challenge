@@ -17,7 +17,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@Disabled("Requer Docker/Testcontainers - Execute com: mvn verify -P integration")
 @AutoConfigureMockMvc
 @DisplayName("AuthController - Testes de Integração")
 class AuthControllerIntegrationTest extends BaseIntegrationTest {

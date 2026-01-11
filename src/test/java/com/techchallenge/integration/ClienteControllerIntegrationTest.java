@@ -19,9 +19,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.junit.jupiter.api.Disabled;
 
-@Disabled("Requer Docker/Testcontainers - Execute com: mvn verify -P integration")
 @AutoConfigureMockMvc
 @DisplayName("ClienteController - Testes de Integração")
 class ClienteControllerIntegrationTest extends BaseIntegrationTest {
