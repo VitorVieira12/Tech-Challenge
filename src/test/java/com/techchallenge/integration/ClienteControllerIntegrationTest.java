@@ -6,6 +6,7 @@ import com.techchallenge.domain.model.Cliente;
 import com.techchallenge.domain.repository.ClienteRepository;
 import com.techchallenge.domain.valueobject.Contato;
 import com.techchallenge.domain.valueobject.CpfCnpj;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,12 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
 
     // Authentication disabled in tests via TestSecurityConfig
     // No need for JWT token in test environment
+
+    @BeforeEach
+    void setUp() {
+        // Clear database before each test to avoid CPF conflicts
+        clienteRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("Deve criar cliente com sucesso")
@@ -75,7 +82,7 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     void deveBuscarClientePorIdComSucesso() throws Exception {
         Cliente cliente = new Cliente();
         cliente.setNome("Maria Santos");
-        cliente.setCpfCnpj(new CpfCnpj("12345678909")); // CPF válido
+        cliente.setCpfCnpj(new CpfCnpj("48464822069")); // CPF válido - ÚNICO
         cliente.setContato(new Contato("maria@email.com"));
         Cliente clienteSalvo = clienteRepository.save(cliente);
 
@@ -83,7 +90,7 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(clienteSalvo.getId()))
                 .andExpect(jsonPath("$.nome").value("Maria Santos"))
-                .andExpect(jsonPath("$.cpfCnpj").value("12345678909"));
+                .andExpect(jsonPath("$.cpfCnpj").value("48464822069"));
     }
 
     @Test
@@ -98,13 +105,13 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     void deveListarTodosOsClientes() throws Exception {
         Cliente cliente1 = new Cliente();
         cliente1.setNome("Cliente 1");
-        cliente1.setCpfCnpj(new CpfCnpj("12345678909")); // CPF válido
+        cliente1.setCpfCnpj(new CpfCnpj("80622351004")); // CPF válido - ÚNICO
         cliente1.setContato(new Contato("cliente1@email.com"));
         clienteRepository.save(cliente1);
 
         Cliente cliente2 = new Cliente();
         cliente2.setNome("Cliente 2");
-        cliente2.setCpfCnpj(new CpfCnpj("98765432100")); // CPF válido
+        cliente2.setCpfCnpj(new CpfCnpj("39721579020")); // CPF válido - ÚNICO
         cliente2.setContato(new Contato("cliente2@email.com"));
         clienteRepository.save(cliente2);
 
@@ -119,7 +126,7 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     void deveAtualizarClienteComSucesso() throws Exception {
         Cliente cliente = new Cliente();
         cliente.setNome("Cliente Original");
-        cliente.setCpfCnpj(new CpfCnpj("72788740417")); // CPF válido
+        cliente.setCpfCnpj(new CpfCnpj("72788740417")); // CPF válido - ÚNICO
         cliente.setContato(new Contato("original@email.com"));
         Cliente clienteSalvo = clienteRepository.save(cliente);
 
@@ -141,7 +148,7 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     void deveDeletarClienteComSucesso() throws Exception {
         Cliente cliente = new Cliente();
         cliente.setNome("Cliente para Deletar");
-        cliente.setCpfCnpj(new CpfCnpj("11144477735")); // CPF válido
+        cliente.setCpfCnpj(new CpfCnpj("95624533047")); // CPF válido - ÚNICO
         cliente.setContato(new Contato("deletar@email.com"));
         Cliente clienteSalvo = clienteRepository.save(cliente);
 
@@ -161,7 +168,7 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     void devePermitirAcessoSemAutenticacao() throws Exception {
         ClienteDTO clienteDTO = new ClienteDTO();
         clienteDTO.setNome("Cliente Teste");
-        clienteDTO.setCpfCnpj("52998224725"); // CPF válido
+        clienteDTO.setCpfCnpj("37381852030"); // CPF válido - ÚNICO
         clienteDTO.setContato("teste@email.com");
 
         mockMvc.perform(post("/api/clientes")
