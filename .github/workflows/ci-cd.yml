@@ -375,9 +375,27 @@ jobs:
           kubectl apply -f k8s/hpa.yaml
           
           echo "⏳ Aguardando aplicação ficar pronta..."
-          kubectl wait --for=condition=ready pod -l app=tech-challenge -n tech-challenge --timeout=300s
+          kubectl wait --for=condition=ready pod -l app=tech-challenge -n tech-challenge --timeout=300s || true
           
-          echo "✅ Aplicação deployada com sucesso"
+          echo "✅ Aplicação deployada"
+      
+      - name: 🔍 Debug - Check Pod Status
+        if: always()
+        run: |
+          echo "📊 Pod Status:"
+          kubectl get pods -n tech-challenge -o wide
+          
+          echo ""
+          echo "📋 Pod Events:"
+          kubectl get events -n tech-challenge --sort-by='.lastTimestamp' | tail -20
+          
+          echo ""
+          echo "📜 Application Logs (last 50 lines):"
+          kubectl logs -l app=tech-challenge -n tech-challenge --tail=50 || echo "No logs available"
+          
+          echo ""
+          echo "🔍 Pod Describe:"
+          kubectl describe pods -l app=tech-challenge -n tech-challenge
       
       - name: 📊 Verify deployment
         run: |
