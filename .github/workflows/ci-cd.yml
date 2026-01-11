@@ -5,14 +5,16 @@ on:
     branches:
       - main
       - develop
+      - tech-2
   pull_request:
     branches:
       - main
       - develop
+      - tech-2
 
 env:
   AWS_REGION: us-east-1
-  EKS_CLUSTER_NAME: tech-challenge-eks
+  EKS_CLUSTER_NAME: tech-challenge-production-eks
   ECR_REPOSITORY: tech-challenge
   DOCKER_IMAGE_TAG: ${{ github.sha }}
   JAVA_VERSION: 21
