@@ -311,13 +311,35 @@ jobs:
           kubectl get namespace tech-challenge || kubectl create namespace tech-challenge
           echo "✅ Namespace verificado/criado"
       
+      - name: 🗺️ Create/Update ConfigMap with RDS endpoint
+        run: |
+          # Deletar configmap se existir
+          kubectl delete configmap app-config -n tech-challenge --ignore-not-found=true
+          
+          # Criar novo configmap com RDS endpoint
+          kubectl create configmap app-config \
+            --from-literal=DB_HOST=tech-challenge-db.c0fu4m0iqxxt.us-east-1.rds.amazonaws.com \
+            --from-literal=DB_PORT=5432 \
+            --from-literal=DB_NAME=tech_challenge_db \
+            --from-literal=SPRING_PROFILES_ACTIVE=prod \
+            --from-literal=SERVER_PORT=8080 \
+            --from-literal=JWT_EXPIRATION=86400000 \
+            --from-literal=LOGGING_LEVEL_ROOT=INFO \
+            --from-literal=LOGGING_LEVEL_COM_TECHCHALLENGE=DEBUG \
+            --from-literal=TZ=America/Sao_Paulo \
+            -n tech-challenge
+          
+          echo "✅ ConfigMap criado/atualizado com RDS endpoint"
+      
       - name: 🔐 Create/Update Secrets
         run: |
           # Deletar secret se existir
           kubectl delete secret app-secrets -n tech-challenge --ignore-not-found=true
           
           # Criar novo secret com valores do GitHub Secrets
+          # DB_HOST aponta para o RDS provisionado pelo Terraform
           kubectl create secret generic app-secrets \
+            --from-literal=DB_HOST=tech-challenge-db.c0fu4m0iqxxt.us-east-1.rds.amazonaws.com \
             --from-literal=DB_USERNAME=${{ secrets.DB_USERNAME }} \
             --from-literal=DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             --from-literal=JWT_SECRET=${{ secrets.JWT_SECRET }} \
@@ -325,7 +347,7 @@ jobs:
             --from-literal=ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }} \
             -n tech-challenge
           
-          echo "✅ Secrets criados/atualizados"
+          echo "✅ Secrets criados/atualizados com RDS endpoint"
       
       - name: 📝 Update deployment with new image
         env:
@@ -340,17 +362,8 @@ jobs:
           
           echo "✅ Deployment atualizado com nova imagem"
       
-      - name: 🗄️ Deploy Database (PostgreSQL)
-        run: |
-          echo "🗄️ Deploying PostgreSQL..."
-          kubectl apply -f k8s/postgres-pvc.yaml
-          kubectl apply -f k8s/postgres-deployment.yaml
-          kubectl apply -f k8s/postgres-service.yaml
-          
-          echo "⏳ Aguardando PostgreSQL ficar pronto..."
-          kubectl wait --for=condition=ready pod -l app=postgres -n tech-challenge --timeout=300s
-          
-          echo "✅ PostgreSQL deployado com sucesso"
+      # PostgreSQL deployment removed - using RDS instead
+      # The application will connect to RDS PostgreSQL via DB_HOST secret
       
       - name: 🚀 Deploy Application
         run: |
