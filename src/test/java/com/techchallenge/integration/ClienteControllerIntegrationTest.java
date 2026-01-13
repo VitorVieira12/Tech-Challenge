@@ -3,7 +3,7 @@ package com.techchallenge.integration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.techchallenge.domain.dto.ClienteDTO;
 import com.techchallenge.domain.model.Cliente;
-import com.techchallenge.domain.repository.ClienteRepository;
+import com.techchallenge.domain.repository.*;
 import com.techchallenge.domain.valueobject.Contato;
 import com.techchallenge.domain.valueobject.CpfCnpj;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,12 +30,29 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    @Autowired
+    private OrdemDeServicoRepository ordemDeServicoRepository;
+
+    @Autowired
+    private VeiculoRepository veiculoRepository;
+
+    @Autowired
+    private PecaInsumoRepository pecaInsumoRepository;
+
+    @Autowired
+    private ServicoRepository servicoRepository;
+
     // Authentication disabled in tests via TestSecurityConfig
     // No need for JWT token in test environment
 
     @BeforeEach
     void setUp() {
-        // Clear database before each test to avoid CPF conflicts
+        // Clear database before each test to avoid conflicts
+        // Must follow FK dependency order: OS -> Veiculos -> Pecas/Servicos -> Clientes
+        ordemDeServicoRepository.deleteAll();
+        veiculoRepository.deleteAll();
+        pecaInsumoRepository.deleteAll();
+        servicoRepository.deleteAll();
         clienteRepository.deleteAll();
     }
 
