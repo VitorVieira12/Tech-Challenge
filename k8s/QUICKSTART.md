@@ -284,3 +284,4 @@ kubectl edit secret app-secrets -n tech-challenge
 
 Para mais detalhes, consulte o **[README.md](README.md)** completo.
 
+

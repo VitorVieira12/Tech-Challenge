@@ -145,3 +145,4 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/tech-challenge:latest
           platforms: linux/amd64,linux/arm64
 
+

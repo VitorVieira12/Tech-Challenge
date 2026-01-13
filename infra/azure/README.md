@@ -48,3 +48,4 @@ kubectl get nodes
 
 Veja [../aws/README.md](../aws/README.md) para infraestrutura pronta para uso.
 
+

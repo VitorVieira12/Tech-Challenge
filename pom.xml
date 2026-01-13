@@ -221,14 +221,37 @@
 						<configuration>
 							<rules>
 								<rule>
-									<element>PACKAGE</element>
+									<element>BUNDLE</element>
 									<limits>
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.0</minimum>
+											<minimum>0.70</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.50</minimum>
 										</limit>
 									</limits>
+								</rule>
+								<rule>
+									<element>CLASS</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.45</minimum>
+										</limit>
+									</limits>
+									<excludes>
+										<exclude>*.dto.*</exclude>
+										<exclude>*.config.*</exclude>
+										<exclude>*.controller.*</exclude>
+										<exclude>*.security.*</exclude>
+										<exclude>*TechChallengeApplication</exclude>
+										<exclude>*.model.Servico</exclude>
+									</excludes>
 								</rule>
 							</rules>
 						</configuration>

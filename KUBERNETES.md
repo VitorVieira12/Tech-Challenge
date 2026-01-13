@@ -451,3 +451,4 @@ Consulte o [README.md](k8s/README.md) completo na pasta `/k8s` para soluções d
 - [HPA Walkthrough](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/)
 - [Best Practices](https://kubernetes.io/docs/concepts/configuration/overview/)
 
+

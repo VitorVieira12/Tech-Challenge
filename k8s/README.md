@@ -318,3 +318,4 @@ curl http://localhost:8080/api/clientes
 5. **Backup:** Configurar backup automático do PostgreSQL
 6. **SSL/TLS:** Configurar certificados Let's Encrypt com cert-manager
 
+

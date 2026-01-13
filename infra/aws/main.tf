@@ -45,3 +45,4 @@ locals {
 # EKS é definido em eks.tf
 # RDS é definido em rds.tf
 
+

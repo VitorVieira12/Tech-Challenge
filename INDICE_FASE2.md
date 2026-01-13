@@ -329,3 +329,4 @@ src/main/java/com/techchallenge/domain/model/
 - [🏗️ Arquitetura](ARQUITETURA_VALUE_OBJECTS.md)
 - [🎯 Resumo para Professor](RESUMO_FASE2_PROFESSOR.md)
 
+

@@ -64,3 +64,4 @@ jobs:
           kubectl get pods -n tech-challenge
           kubectl describe deployment tech-challenge-app -n tech-challenge | grep Image
 
+
