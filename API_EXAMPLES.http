@@ -386,7 +386,28 @@ Authorization: Basic {{auth}}
 ### GESTÃO E ACOMPANHAMENTO DE ORDENS DE SERVIÇO
 ### ============================================
 
-### 1. Atualizar Status: AGUARDANDO_APROVACAO -> EM_EXECUCAO
+### 1. Atualizar Informações da OS (apenas observações por enquanto)
+# Permitido apenas em status editáveis: RECEBIDA, EM_DIAGNOSTICO, AGUARDANDO_APROVACAO, EM_EXECUCAO
+# OSs finalizadas ou entregues não podem ser editadas
+PUT {{baseUrl}}/ordens-servico/1
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "observacoes": "Diagnóstico realizado: necessário trocar pastilhas de freio. Cliente será contatado para aprovação."
+}
+
+### 2. Tentar atualizar OS Finalizada (deve retornar 400)
+# Não é permitido editar OSs com status FINALIZADA ou ENTREGUE
+PUT {{baseUrl}}/ordens-servico/1
+Authorization: Basic {{auth}}
+Content-Type: application/json
+
+{
+  "observacoes": "Tentando atualizar OS finalizada"
+}
+
+### 3. Atualizar Status: AGUARDANDO_APROVACAO -> EM_EXECUCAO
 PATCH {{baseUrl}}/ordens-servico/1/status
 Authorization: Basic {{auth}}
 Content-Type: application/json
@@ -396,7 +417,7 @@ Content-Type: application/json
   "observacao": "Cliente aprovou o orçamento. Iniciando os serviços."
 }
 
-### 2. Atualizar Status: RECEBIDA -> EM_DIAGNOSTICO
+### 4. Atualizar Status: RECEBIDA -> EM_DIAGNOSTICO
 PATCH {{baseUrl}}/ordens-servico/1/status
 Authorization: Basic {{auth}}
 Content-Type: application/json
@@ -406,7 +427,7 @@ Content-Type: application/json
   "observacao": "Veículo entrou em diagnóstico para avaliação."
 }
 
-### 3. Atualizar Status: EM_EXECUCAO -> FINALIZADA
+### 5. Atualizar Status: EM_EXECUCAO -> FINALIZADA
 PATCH {{baseUrl}}/ordens-servico/1/status
 Authorization: Basic {{auth}}
 Content-Type: application/json
@@ -416,7 +437,7 @@ Content-Type: application/json
   "observacao": "Todos os serviços foram concluídos com sucesso."
 }
 
-### 4. Atualizar Status: FINALIZADA -> ENTREGUE
+### 6. Atualizar Status: FINALIZADA -> ENTREGUE
 PATCH {{baseUrl}}/ordens-servico/1/status
 Authorization: Basic {{auth}}
 Content-Type: application/json
@@ -426,15 +447,15 @@ Content-Type: application/json
   "observacao": "Veículo entregue ao cliente."
 }
 
-### 5. Consulta Pública - Cliente consultando status da OS
+### 7. Consulta Pública - Cliente consultando status da OS
 # Este endpoint não requer autenticação administrativa
 # Apenas CPF/CNPJ do cliente como autenticação simples
 GET {{baseUrl}}/ordens-servico/status/1?cpfCnpj=12345678901
 
-### 6. Consulta Pública - Teste com CPF incorreto (deve retornar 404)
+### 8. Consulta Pública - Teste com CPF incorreto (deve retornar 404)
 GET {{baseUrl}}/ordens-servico/status/1?cpfCnpj=99999999999
 
-### 7. Monitoramento - Consultar tempo médio de execução
+### 9. Monitoramento - Consultar tempo médio de execução
 GET {{baseUrl}}/ordens-servico/monitoramento/tempo-medio
 Authorization: Basic {{auth}}
 

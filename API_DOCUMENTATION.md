@@ -405,7 +405,66 @@ Este é o fluxo principal do sistema. O endpoint:
 ]
 ```
 
-#### 5.4 Atualizar Status da Ordem de Serviço (Administrativo)
+#### 5.4 Atualizar Informações da Ordem de Serviço
+**PUT** `/ordens-servico/{id}`
+
+Permite atualizar informações da OS (atualmente apenas observações).
+**Importante:** Apenas OSs em status editáveis podem ser atualizadas.
+
+**Status Editáveis:**
+- ✅ RECEBIDA
+- ✅ EM_DIAGNOSTICO
+- ✅ AGUARDANDO_APROVACAO
+- ✅ EM_EXECUCAO
+
+**Status Bloqueados:**
+- ❌ FINALIZADA (não pode ser editada)
+- ❌ ENTREGUE (não pode ser editada)
+
+**Request Body:**
+```json
+{
+  "observacoes": "Diagnóstico realizado: necessário trocar pastilhas de freio. Cliente será contatado para aprovação."
+}
+```
+
+**Validações:**
+- `observacoes`: opcional, máximo 1000 caracteres
+
+**Response:** `200 OK`
+```json
+{
+  "id": 1,
+  "dataCriacao": "2025-10-05T15:30:00",
+  "dataInicioExecucao": null,
+  "dataFinalizacao": null,
+  "dataEntrega": null,
+  "valorTotalOrcamento": 520.00,
+  "status": "EM_DIAGNOSTICO",
+  "clienteId": 1,
+  "clienteNome": "João Silva",
+  "veiculoId": 1,
+  "veiculoPlaca": "ABC1234",
+  "veiculoModelo": "Toyota Corolla",
+  "servicos": [...],
+  "pecas": [...],
+  "observacoes": "Diagnóstico realizado: necessário trocar pastilhas de freio. Cliente será contatado para aprovação."
+}
+```
+
+**Erros Possíveis:**
+- `400 Bad Request`: Tentativa de editar OS com status FINALIZADA ou ENTREGUE
+```json
+{
+  "timestamp": "2025-10-05T16:00:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Não é possível atualizar a OS no status FINALIZADA. Apenas OSs nos status RECEBIDA, EM_DIAGNOSTICO, AGUARDANDO_APROVACAO ou EM_EXECUCAO podem ser editadas.",
+  "path": "/api/ordens-servico/1"
+}
+```
+
+#### 5.5 Atualizar Status da Ordem de Serviço (Administrativo)
 **PATCH** `/ordens-servico/{id}/status`
 
 Permite que administradores alterem o status de uma OS seguindo as regras de transição.
@@ -470,7 +529,7 @@ As datas são atualizadas automaticamente conforme o novo status.
 }
 ```
 
-#### 5.5 Consultar Status da OS (Público - Cliente)
+#### 5.6 Consultar Status da OS (Público - Cliente)
 **GET** `/ordens-servico/status/{id}?cpfCnpj={cpfCnpj}`
 
 Endpoint público que permite ao cliente consultar o status de sua OS.
@@ -523,7 +582,7 @@ Retorna apenas informações essenciais, sem expor dados sensíveis ou de outros
 }
 ```
 
-#### 5.6 Monitoramento - Tempo Médio de Execução
+#### 5.7 Monitoramento - Tempo Médio de Execução
 **GET** `/ordens-servico/monitoramento/tempo-medio`
 
 Retorna estatísticas sobre o tempo médio de execução das OSs finalizadas.

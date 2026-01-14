@@ -4,6 +4,7 @@ import com.techchallenge.domain.dto.MonitoramentoDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoInputDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoPublicDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoResponseDTO;
+import com.techchallenge.domain.dto.OrdemDeServicoUpdateDTO;
 import com.techchallenge.domain.dto.StatusUpdateDTO;
 import com.techchallenge.domain.exception.EstoqueInsuficienteException;
 import com.techchallenge.domain.exception.ResourceNotFoundException;
@@ -338,6 +339,49 @@ public class OrdemDeServicoService {
         
         log.info("Consulta pública autorizada para OS {}", osId);
         return OrdemDeServicoPublicDTO.fromEntity(os);
+    }
+
+    @Transactional
+    public OrdemDeServicoResponseDTO atualizarOrdemServico(Long id, OrdemDeServicoUpdateDTO updateDTO) {
+        log.info("Atualizando informações da OS {}", id);
+        
+        OrdemDeServico os = ordemDeServicoRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Ordem de Serviço", id));
+        
+        // Validar se o status permite edição
+        validarStatusEditavel(os.getStatus());
+        
+        // Atualizar observações se fornecidas
+        if (updateDTO.getObservacoes() != null) {
+            os.setObservacoes(updateDTO.getObservacoes());
+            log.info("Observações da OS {} atualizadas", id);
+        }
+        
+        OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
+        log.info("OS {} atualizada com sucesso", id);
+        
+        return OrdemDeServicoResponseDTO.fromEntity(osSalva);
+    }
+    
+    /**
+     * Valida se a OS está em um status que permite edição
+     * Apenas os status RECEBIDA, EM_DIAGNOSTICO, AGUARDANDO_APROVACAO e EM_EXECUCAO são editáveis
+     */
+    private void validarStatusEditavel(StatusOrdemServico status) {
+        Set<StatusOrdemServico> statusEditaveis = EnumSet.of(
+            StatusOrdemServico.RECEBIDA,
+            StatusOrdemServico.EM_DIAGNOSTICO,
+            StatusOrdemServico.AGUARDANDO_APROVACAO,
+            StatusOrdemServico.EM_EXECUCAO
+        );
+        
+        if (!statusEditaveis.contains(status)) {
+            throw new IllegalStateException(
+                String.format("Não é possível atualizar a OS no status %s. " +
+                    "Apenas OSs nos status RECEBIDA, EM_DIAGNOSTICO, AGUARDANDO_APROVACAO ou EM_EXECUCAO podem ser editadas.",
+                    status)
+            );
+        }
     }
 
     @Transactional(readOnly = true)

@@ -5,6 +5,7 @@ import com.techchallenge.domain.dto.MonitoramentoDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoInputDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoPublicDTO;
 import com.techchallenge.domain.dto.OrdemDeServicoResponseDTO;
+import com.techchallenge.domain.dto.OrdemDeServicoUpdateDTO;
 import com.techchallenge.domain.dto.StatusUpdateDTO;
 import com.techchallenge.domain.model.StatusOrdemServico;
 import com.techchallenge.domain.service.OrdemDeServicoService;
@@ -60,7 +61,26 @@ public class OrdemDeServicoController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{id}")
+    @Operation(
+            summary = "Atualizar Ordem de Serviço",
+            description = "Atualiza informações da OS. Permitido apenas para OSs nos status: " +
+                    "RECEBIDA, EM_DIAGNOSTICO, AGUARDANDO_APROVACAO ou EM_EXECUCAO. " +
+                    "OSs finalizadas ou entregues não podem ser editadas."
+    )
+    public ResponseEntity<OrdemDeServicoResponseDTO> atualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody OrdemDeServicoUpdateDTO updateDTO) {
+        
+        OrdemDeServicoResponseDTO response = ordemDeServicoService.atualizarOrdemServico(id, updateDTO);
+        return ResponseEntity.ok(response);
+    }
+
     @PatchMapping("/{id}/status")
+    @Operation(
+            summary = "Atualizar Status da OS (Administrativo)",
+            description = "Permite alterar o status da OS seguindo as regras de transição de estados"
+    )
     public ResponseEntity<OrdemDeServicoResponseDTO> atualizarStatus(
             @PathVariable Long id,
             @Valid @RequestBody StatusUpdateDTO statusUpdateDTO) {
@@ -88,7 +108,6 @@ public class OrdemDeServicoController {
         MonitoramentoDTO response = ordemDeServicoService.calcularTempoMedioExecucao();
         return ResponseEntity.ok(response);
     }
-
 
     @PostMapping("/{id}/aprovar-orcamento")
     @Operation(

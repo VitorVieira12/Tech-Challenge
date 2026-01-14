@@ -233,6 +233,163 @@ class OrdemDeServicoServiceTest {
         verify(ordemDeServicoRepository).findById(1L);
     }
 
+    @Test
+    @DisplayName("Deve atualizar OS quando status é editável (RECEBIDA)")
+    void deveAtualizarOSQuandoStatusEditavel_Recebida() {
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.RECEBIDA);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        os.setValorTotalOrcamento(new ValorMonetario(new BigDecimal("200.00")));
+        os.setObservacoes("Observação inicial");
+        
+        OrdemDeServicoUpdateDTO updateDTO = new OrdemDeServicoUpdateDTO();
+        updateDTO.setObservacoes("Diagnóstico: motor apresenta ruído anormal");
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+        when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenReturn(os);
+
+        OrdemDeServicoResponseDTO result = ordemDeServicoService.atualizarOrdemServico(1L, updateDTO);
+
+        assertThat(result).isNotNull();
+        assertThat(os.getObservacoes()).isEqualTo("Diagnóstico: motor apresenta ruído anormal");
+        verify(ordemDeServicoRepository).findById(1L);
+        verify(ordemDeServicoRepository).save(os);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar OS quando status é editável (EM_DIAGNOSTICO)")
+    void deveAtualizarOSQuandoStatusEditavel_EmDiagnostico() {
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.EM_DIAGNOSTICO);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        os.setValorTotalOrcamento(new ValorMonetario(new BigDecimal("200.00")));
+        
+        OrdemDeServicoUpdateDTO updateDTO = new OrdemDeServicoUpdateDTO();
+        updateDTO.setObservacoes("Identificado problema na suspensão");
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+        when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenReturn(os);
+
+        OrdemDeServicoResponseDTO result = ordemDeServicoService.atualizarOrdemServico(1L, updateDTO);
+
+        assertThat(result).isNotNull();
+        assertThat(os.getObservacoes()).isEqualTo("Identificado problema na suspensão");
+        verify(ordemDeServicoRepository).findById(1L);
+        verify(ordemDeServicoRepository).save(os);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar OS quando status é editável (AGUARDANDO_APROVACAO)")
+    void deveAtualizarOSQuandoStatusEditavel_AguardandoAprovacao() {
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        os.setValorTotalOrcamento(new ValorMonetario(new BigDecimal("200.00")));
+        
+        OrdemDeServicoUpdateDTO updateDTO = new OrdemDeServicoUpdateDTO();
+        updateDTO.setObservacoes("Cliente solicitou alteração no orçamento");
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+        when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenReturn(os);
+
+        OrdemDeServicoResponseDTO result = ordemDeServicoService.atualizarOrdemServico(1L, updateDTO);
+
+        assertThat(result).isNotNull();
+        assertThat(os.getObservacoes()).isEqualTo("Cliente solicitou alteração no orçamento");
+        verify(ordemDeServicoRepository).findById(1L);
+        verify(ordemDeServicoRepository).save(os);
+    }
+
+    @Test
+    @DisplayName("Deve atualizar OS quando status é editável (EM_EXECUCAO)")
+    void deveAtualizarOSQuandoStatusEditavel_EmExecucao() {
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.EM_EXECUCAO);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        os.setValorTotalOrcamento(new ValorMonetario(new BigDecimal("200.00")));
+        
+        OrdemDeServicoUpdateDTO updateDTO = new OrdemDeServicoUpdateDTO();
+        updateDTO.setObservacoes("Serviço em andamento - 50% concluído");
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+        when(ordemDeServicoRepository.save(any(OrdemDeServico.class))).thenReturn(os);
+
+        OrdemDeServicoResponseDTO result = ordemDeServicoService.atualizarOrdemServico(1L, updateDTO);
+
+        assertThat(result).isNotNull();
+        assertThat(os.getObservacoes()).isEqualTo("Serviço em andamento - 50% concluído");
+        verify(ordemDeServicoRepository).findById(1L);
+        verify(ordemDeServicoRepository).save(os);
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar atualizar OS FINALIZADA")
+    void deveLancarExcecaoAoTentarAtualizarOSFinalizada() {
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.FINALIZADA);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        
+        OrdemDeServicoUpdateDTO updateDTO = new OrdemDeServicoUpdateDTO();
+        updateDTO.setObservacoes("Tentando atualizar OS finalizada");
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+
+        assertThatThrownBy(() -> ordemDeServicoService.atualizarOrdemServico(1L, updateDTO))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Não é possível atualizar a OS no status FINALIZADA");
+        
+        verify(ordemDeServicoRepository).findById(1L);
+        verify(ordemDeServicoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar atualizar OS ENTREGUE")
+    void deveLancarExcecaoAoTentarAtualizarOSEntregue() {
+        OrdemDeServico os = new OrdemDeServico();
+        os.setId(1L);
+        os.setStatus(StatusOrdemServico.ENTREGUE);
+        os.setCliente(cliente);
+        os.setVeiculo(veiculo);
+        
+        OrdemDeServicoUpdateDTO updateDTO = new OrdemDeServicoUpdateDTO();
+        updateDTO.setObservacoes("Tentando atualizar OS entregue");
+        
+        when(ordemDeServicoRepository.findById(1L)).thenReturn(Optional.of(os));
+
+        assertThatThrownBy(() -> ordemDeServicoService.atualizarOrdemServico(1L, updateDTO))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Não é possível atualizar a OS no status ENTREGUE");
+        
+        verify(ordemDeServicoRepository).findById(1L);
+        verify(ordemDeServicoRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção quando OS não existe")
+    void deveLancarExcecaoQuandoOSNaoExiste() {
+        OrdemDeServicoUpdateDTO updateDTO = new OrdemDeServicoUpdateDTO();
+        updateDTO.setObservacoes("Tentando atualizar OS inexistente");
+        
+        when(ordemDeServicoRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> ordemDeServicoService.atualizarOrdemServico(999L, updateDTO))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessageContaining("Ordem de Serviço");
+        
+        verify(ordemDeServicoRepository).findById(999L);
+        verify(ordemDeServicoRepository, never()).save(any());
+    }
+
     private OrdemDeServicoInputDTO criarInputDTOValido() {
         OrdemDeServicoInputDTO input = new OrdemDeServicoInputDTO();
         input.setCpfCnpjCliente("11144477735");
