@@ -266,6 +266,19 @@ Atualmente configurado com Spring Security básico:
 
 ### 5. Ordens de Serviço
 
+#### Índice de Endpoints
+1. [5.1 Criar Ordem de Serviço](#51-criar-ordem-de-serviço) - `POST /ordens-servico`
+2. [5.2 Buscar por ID](#52-buscar-ordem-de-serviço-por-id) - `GET /ordens-servico/{id}`
+3. [5.3 Listar OSs](#53-listar-ordens-de-serviço) - `GET /ordens-servico`
+4. [5.4 Atualizar Informações](#54-atualizar-informações-da-ordem-de-serviço) - `PUT /ordens-servico/{id}`
+5. [5.5 Atualizar Status (Admin)](#55-atualizar-status-da-ordem-de-serviço-administrativo) - `PATCH /ordens-servico/{id}/status`
+6. [5.6 Consulta Pública de Status](#56-consultar-status-da-os-público---cliente) - `GET /ordens-servico/status/{id}`
+7. [5.7 Aprovar/Recusar Orçamento](#57-aprovar-ou-recusar-orçamento-fase-2-) 🆕 **FASE 2** - `POST /ordens-servico/{id}/aprovar-orcamento`
+8. [5.8 Listar em Andamento (Ordenado)](#58-listar-os-em-andamento-com-ordenação-prioritária-fase-2-) 🆕 **FASE 2** - `GET /ordens-servico/em-andamento`
+9. [5.9 Monitoramento](#59-monitoramento---tempo-médio-de-execução) - `GET /ordens-servico/monitoramento/tempo-medio`
+
+---
+
 #### 5.1 Criar Ordem de Serviço
 **POST** `/ordens-servico`
 
@@ -582,7 +595,127 @@ Retorna apenas informações essenciais, sem expor dados sensíveis ou de outros
 }
 ```
 
-#### 5.7 Monitoramento - Tempo Médio de Execução
+#### 5.7 Aprovar ou Recusar Orçamento (FASE 2) 🆕
+**POST** `/ordens-servico/{id}/aprovar-orcamento`
+
+Endpoint para o cliente aprovar ou recusar o orçamento apresentado.
+Este é um dos requisitos específicos da **Fase 2** do Tech Challenge.
+
+**Regras de Negócio:**
+- Apenas OSs no status `AGUARDANDO_APROVACAO` podem ser aprovadas/recusadas
+- Se aprovado: muda para `EM_EXECUCAO` e define `dataInicioExecucao`
+- Se recusado: volta para `RECEBIDA` e adiciona observação
+
+**Request Body:**
+```json
+{
+  "aprovado": true,
+  "observacao": "Cliente aprovou o orçamento via telefone"
+}
+```
+
+**Validações:**
+- `aprovado`: obrigatório (true/false)
+- `observacao`: opcional, máximo 500 caracteres
+
+**Response:** `200 OK`
+```json
+{
+  "id": 1,
+  "dataCriacao": "2025-10-05T15:30:00",
+  "dataInicioExecucao": "2025-10-05T16:30:00",
+  "dataFinalizacao": null,
+  "dataEntrega": null,
+  "valorTotalOrcamento": 520.00,
+  "status": "EM_EXECUCAO",
+  "clienteId": 1,
+  "clienteNome": "João Silva",
+  "veiculoId": 1,
+  "veiculoPlaca": "ABC1234",
+  "veiculoModelo": "Toyota Corolla",
+  "servicos": [...],
+  "pecas": [...],
+  "observacoes": "Cliente aprovou o orçamento via telefone"
+}
+```
+
+**Erros Possíveis:**
+- `400 Bad Request`: OS não está no status `AGUARDANDO_APROVACAO`
+```json
+{
+  "timestamp": "2025-10-05T16:30:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Ordem de Serviço 1 não está aguardando aprovação. Status atual: EM_EXECUCAO",
+  "path": "/api/ordens-servico/1/aprovar-orcamento"
+}
+```
+
+#### 5.8 Listar OS em Andamento com Ordenação Prioritária (FASE 2) 🆕
+**GET** `/ordens-servico/em-andamento`
+
+Lista todas as OS em andamento com ordenação prioritária por status.
+Este é um dos requisitos específicos da **Fase 2** do Tech Challenge.
+
+**Regras de Ordenação:**
+1. **Excluir da lista:** OSs com status `FINALIZADA` e `ENTREGUE`
+2. **Ordenação prioritária por status:**
+   - 1º `EM_EXECUCAO` (prioridade máxima)
+   - 2º `AGUARDANDO_APROVACAO`
+   - 3º `EM_DIAGNOSTICO`
+   - 4º `RECEBIDA`
+3. **Dentro de cada status:** mais antigas primeiro (por `dataCriacao`)
+
+**Response:** `200 OK`
+```json
+[
+  {
+    "id": 5,
+    "dataCriacao": "2025-10-03T10:00:00",
+    "dataInicioExecucao": "2025-10-03T14:00:00",
+    "status": "EM_EXECUCAO",
+    "clienteNome": "Maria Santos",
+    "veiculoPlaca": "XYZ5678",
+    "valorTotalOrcamento": 850.00
+  },
+  {
+    "id": 8,
+    "dataCriacao": "2025-10-04T09:00:00",
+    "dataInicioExecucao": "2025-10-04T11:00:00",
+    "status": "EM_EXECUCAO",
+    "clienteNome": "Pedro Costa",
+    "veiculoPlaca": "ABC9876"
+  },
+  {
+    "id": 3,
+    "dataCriacao": "2025-10-02T15:00:00",
+    "status": "AGUARDANDO_APROVACAO",
+    "clienteNome": "Carlos Silva",
+    "veiculoPlaca": "DEF4567"
+  },
+  {
+    "id": 7,
+    "dataCriacao": "2025-10-04T08:00:00",
+    "status": "EM_DIAGNOSTICO",
+    "clienteNome": "Ana Paula",
+    "veiculoPlaca": "GHI1234"
+  },
+  {
+    "id": 10,
+    "dataCriacao": "2025-10-05T07:00:00",
+    "status": "RECEBIDA",
+    "clienteNome": "José Oliveira",
+    "veiculoPlaca": "JKL9012"
+  }
+]
+```
+
+**Observações:**
+- OSs finalizadas e entregues **não aparecem** nesta listagem
+- Útil para tela de gestão da oficina mostrando prioridades
+- Dentro de cada grupo de status, OSs mais antigas aparecem primeiro
+
+#### 5.9 Monitoramento - Tempo Médio de Execução
 **GET** `/ordens-servico/monitoramento/tempo-medio`
 
 Retorna estatísticas sobre o tempo médio de execução das OSs finalizadas.

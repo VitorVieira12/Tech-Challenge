@@ -875,9 +875,11 @@ Body: {
 | GET | `/api/ordens-servico/{id}` | Buscar por ID | ✅ |
 | PATCH | `/api/ordens-servico/{id}/status` | Alterar status | ✅ |
 | GET | `/api/ordens-servico/status/{id}` | Consulta pública | ❌ |
+| POST | `/api/ordens-servico/{id}/aprovar-orcamento` | Aprovar orçamento 🆕 | ✅ |
+| GET | `/api/ordens-servico/em-andamento` | Listar ordenado 🆕 | ✅ |
 | GET | `/api/ordens-servico/monitoramento/tempo-medio` | Estatísticas | ✅ |
 
-**Legenda:** ✅ Requer JWT | ❌ Público
+**Legenda:** ✅ Requer JWT | ❌ Público | 🆕 Fase 2
 
 ---
 
