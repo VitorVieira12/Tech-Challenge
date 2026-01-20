@@ -42,13 +42,8 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private ServicoRepository servicoRepository;
 
-    // Authentication disabled in tests via TestSecurityConfig
-    // No need for JWT token in test environment
-
     @BeforeEach
     void setUp() {
-        // Clear database before each test to avoid conflicts
-        // Must follow FK dependency order: OS -> Veiculos -> Pecas/Servicos -> Clientes
         ordemDeServicoRepository.deleteAll();
         veiculoRepository.deleteAll();
         pecaInsumoRepository.deleteAll();
@@ -61,7 +56,7 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     void deveCriarClienteComSucesso() throws Exception {
         ClienteDTO clienteDTO = new ClienteDTO();
         clienteDTO.setNome("Carlos Silva");
-        clienteDTO.setCpfCnpj("52998224725"); // CPF válido
+        clienteDTO.setCpfCnpj("52998224725");
         clienteDTO.setContato("carlos@email.com");
 
         mockMvc.perform(post("/api/clientes")
@@ -79,7 +74,7 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     void deveRetornarErroAoCriarClienteComCpfDuplicado() throws Exception {
         Cliente clienteExistente = new Cliente();
         clienteExistente.setNome("João Silva");
-        clienteExistente.setCpfCnpj(new CpfCnpj("11144477735")); // CPF válido
+        clienteExistente.setCpfCnpj(new CpfCnpj("11144477735"));
         clienteExistente.setContato(new Contato("joao@email.com"));
         clienteRepository.save(clienteExistente);
 
@@ -95,12 +90,12 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("TODO: Fix CPF validation")
+    @org.junit.jupiter.api.Disabled("CPF validation issue - needs valid CPF")
     @DisplayName("Deve buscar cliente por ID com sucesso")
     void deveBuscarClientePorIdComSucesso() throws Exception {
         Cliente cliente = new Cliente();
         cliente.setNome("Maria Santos");
-        cliente.setCpfCnpj(new CpfCnpj("48464822069")); // CPF válido - ÚNICO
+        cliente.setCpfCnpj(new CpfCnpj("48464822069"));
         cliente.setContato(new Contato("maria@email.com"));
         Cliente clienteSalvo = clienteRepository.save(cliente);
 
@@ -119,18 +114,18 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("TODO: Fix CPF validation")
+    @org.junit.jupiter.api.Disabled("CPF validation issue - needs valid CPFs")
     @DisplayName("Deve listar todos os clientes")
     void deveListarTodosOsClientes() throws Exception {
         Cliente cliente1 = new Cliente();
         cliente1.setNome("Cliente 1");
-        cliente1.setCpfCnpj(new CpfCnpj("80622351004")); // CPF válido - ÚNICO
+        cliente1.setCpfCnpj(new CpfCnpj("80622351004"));
         cliente1.setContato(new Contato("cliente1@email.com"));
         clienteRepository.save(cliente1);
 
         Cliente cliente2 = new Cliente();
         cliente2.setNome("Cliente 2");
-        cliente2.setCpfCnpj(new CpfCnpj("39721579020")); // CPF válido - ÚNICO
+        cliente2.setCpfCnpj(new CpfCnpj("39721579020"));
         cliente2.setContato(new Contato("cliente2@email.com"));
         clienteRepository.save(cliente2);
 
@@ -141,12 +136,12 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("TODO: Fix CPF validation")
+    @org.junit.jupiter.api.Disabled("CPF validation issue - needs valid CPF")
     @DisplayName("Deve atualizar cliente com sucesso")
     void deveAtualizarClienteComSucesso() throws Exception {
         Cliente cliente = new Cliente();
         cliente.setNome("Cliente Original");
-        cliente.setCpfCnpj(new CpfCnpj("72788740417")); // CPF válido - ÚNICO
+        cliente.setCpfCnpj(new CpfCnpj("72788740417"));
         cliente.setContato(new Contato("original@email.com"));
         Cliente clienteSalvo = clienteRepository.save(cliente);
 
@@ -164,12 +159,12 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("TODO: Fix CPF validation")
+    @org.junit.jupiter.api.Disabled("CPF validation issue - needs valid CPF")
     @DisplayName("Deve deletar cliente com sucesso")
     void deveDeletarClienteComSucesso() throws Exception {
         Cliente cliente = new Cliente();
         cliente.setNome("Cliente para Deletar");
-        cliente.setCpfCnpj(new CpfCnpj("95624533047")); // CPF válido - ÚNICO
+        cliente.setCpfCnpj(new CpfCnpj("95624533047"));
         cliente.setContato(new Contato("deletar@email.com"));
         Cliente clienteSalvo = clienteRepository.save(cliente);
 
@@ -185,17 +180,17 @@ class ClienteControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("TODO: Fix CPF validation")
-    @DisplayName("Deve permitir acesso sem autenticação (Security desabilitado em testes)")
+    @org.junit.jupiter.api.Disabled("Test expects 201 but needs proper CPF validation")
+    @DisplayName("Deve permitir acesso sem autenticação")
     void devePermitirAcessoSemAutenticacao() throws Exception {
         ClienteDTO clienteDTO = new ClienteDTO();
         clienteDTO.setNome("Cliente Teste");
-        clienteDTO.setCpfCnpj("37381852030"); // CPF válido - ÚNICO
+        clienteDTO.setCpfCnpj("37381852030");
         clienteDTO.setContato("teste@email.com");
 
         mockMvc.perform(post("/api/clientes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(clienteDTO)))
-                .andExpect(status().isCreated()); // Changed from isForbidden to isCreated
+                .andExpect(status().isCreated());
     }
 }

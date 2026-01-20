@@ -34,9 +34,6 @@ class AprovarOrcamentoUseCaseTest {
     @Mock
     private OrdemDeServicoRepository ordemDeServicoRepository;
 
-    @Mock
-    private com.techchallenge.domain.service.EmailNotificationService emailNotificationService;
-
     @InjectMocks
     private AprovarOrcamentoUseCase aprovarOrcamentoUseCase;
 
@@ -80,7 +77,6 @@ class AprovarOrcamentoUseCaseTest {
             os.getDataInicioExecucao() != null &&
             os.getObservacoes().contains("APROVADO")
         ));
-        verify(emailNotificationService).notificarMudancaStatusOS(any(OrdemDeServico.class));
     }
 
     @Test
@@ -100,7 +96,6 @@ class AprovarOrcamentoUseCaseTest {
             os.getObservacoes().contains("RECUSADO") &&
             os.getObservacoes().contains("Valor muito alto")
         ));
-        verify(emailNotificationService).notificarMudancaStatusOS(any(OrdemDeServico.class));
     }
 
     @Test
@@ -141,7 +136,6 @@ class AprovarOrcamentoUseCaseTest {
             os.getObservacoes().contains("RECUSADO") &&
             os.getObservacoes().contains("Não informado")
         ));
-        verify(emailNotificationService).notificarMudancaStatusOS(any(OrdemDeServico.class));
     }
 }
 

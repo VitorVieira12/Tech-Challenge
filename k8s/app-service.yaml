@@ -13,9 +13,5 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: tech-challenge
-  sessionAffinity: ClientIP  # Mantém o cliente na mesma réplica
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 10800  # 3 horas
+    app: tech-challenge-app
 

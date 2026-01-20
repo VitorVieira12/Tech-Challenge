@@ -45,13 +45,8 @@ class PecaInsumoControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private ServicoRepository servicoRepository;
 
-    // Authentication disabled in tests via TestSecurityConfig
-    // No need for JWT token in test environment
-
     @BeforeEach
     void setUp() {
-        // Clear database before each test to avoid conflicts
-        // Must follow FK dependency order
         ordemDeServicoRepository.deleteAll();
         veiculoRepository.deleteAll();
         pecaInsumoRepository.deleteAll();
@@ -89,8 +84,7 @@ class PecaInsumoControllerIntegrationTest extends BaseIntegrationTest {
         peca.setQuantidadeEstoque(50);
         PecaInsumo pecaSalva = pecaInsumoRepository.save(peca);
 
-        mockMvc.perform(get("/api/pecas-insumos/" + pecaSalva.getId())
-)
+        mockMvc.perform(get("/api/pecas-insumos/" + pecaSalva.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(pecaSalva.getId()))
                 .andExpect(jsonPath("$.nome").value("Pastilha de freio"))
@@ -100,8 +94,7 @@ class PecaInsumoControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve retornar 404 ao buscar peça/insumo inexistente")
     void deveRetornar404AoBuscarPecaInsumoInexistente() throws Exception {
-        mockMvc.perform(get("/api/pecas-insumos/99999")
-)
+        mockMvc.perform(get("/api/pecas-insumos/99999"))
                 .andExpect(status().isNotFound());
     }
 
@@ -122,8 +115,7 @@ class PecaInsumoControllerIntegrationTest extends BaseIntegrationTest {
         peca2.setQuantidadeEstoque(150);
         pecaInsumoRepository.save(peca2);
 
-        mockMvc.perform(get("/api/pecas-insumos")
-)
+        mockMvc.perform(get("/api/pecas-insumos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2));
@@ -166,8 +158,7 @@ class PecaInsumoControllerIntegrationTest extends BaseIntegrationTest {
         PecaInsumo pecaSalva = pecaInsumoRepository.save(peca);
 
         mockMvc.perform(patch("/api/pecas-insumos/" + pecaSalva.getId() + "/estoque")
-                        .param("quantidadeAjuste", "50")
-)
+                        .param("quantidadeAjuste", "50"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.quantidadeEstoque").value(150));
     }
@@ -183,8 +174,7 @@ class PecaInsumoControllerIntegrationTest extends BaseIntegrationTest {
         PecaInsumo pecaSalva = pecaInsumoRepository.save(peca);
 
         mockMvc.perform(patch("/api/pecas-insumos/" + pecaSalva.getId() + "/estoque")
-                        .param("quantidadeAjuste", "-30")
-)
+                        .param("quantidadeAjuste", "-30"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.quantidadeEstoque").value(70));
     }
@@ -200,8 +190,7 @@ class PecaInsumoControllerIntegrationTest extends BaseIntegrationTest {
         PecaInsumo pecaSalva = pecaInsumoRepository.save(peca);
 
         mockMvc.perform(patch("/api/pecas-insumos/" + pecaSalva.getId() + "/estoque")
-                        .param("quantidadeAjuste", "-20")
-)
+                        .param("quantidadeAjuste", "-20"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -215,16 +204,14 @@ class PecaInsumoControllerIntegrationTest extends BaseIntegrationTest {
         peca.setQuantidadeEstoque(5);
         PecaInsumo pecaSalva = pecaInsumoRepository.save(peca);
 
-        mockMvc.perform(delete("/api/pecas-insumos/" + pecaSalva.getId())
-)
+        mockMvc.perform(delete("/api/pecas-insumos/" + pecaSalva.getId()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @DisplayName("Deve retornar 404 ao deletar peça/insumo inexistente")
     void deveRetornar404AoDeletarPecaInsumoInexistente() throws Exception {
-        mockMvc.perform(delete("/api/pecas-insumos/99999")
-)
+        mockMvc.perform(delete("/api/pecas-insumos/99999"))
                 .andExpect(status().isNotFound());
     }
 

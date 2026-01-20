@@ -23,9 +23,8 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.junit.jupiter.api.Disabled;
 
-@org.junit.jupiter.api.Disabled("TODO: Remove JWT token references")
+@org.junit.jupiter.api.Disabled("Security disabled in test environment - JWT authentication not available")
 @AutoConfigureMockMvc
 @DisplayName("VeiculoController - Testes de Integração")
 class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
@@ -98,7 +97,6 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         veiculoDTO.setClienteId(cliente.getId());
 
         mockMvc.perform(post("/api/veiculos")
-                        
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(veiculoDTO)))
                 .andExpect(status().isCreated())
@@ -124,7 +122,6 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         veiculoDTO.setClienteId(cliente.getId());
 
         mockMvc.perform(post("/api/veiculos")
-                        
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(veiculoDTO)))
                 .andExpect(status().isConflict());
@@ -141,7 +138,6 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         veiculoDTO.setClienteId(99999L);
 
         mockMvc.perform(post("/api/veiculos")
-                        
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(veiculoDTO)))
                 .andExpect(status().isNotFound());
@@ -158,8 +154,7 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         veiculo.setCliente(cliente);
         Veiculo veiculoSalvo = veiculoRepository.save(veiculo);
 
-        mockMvc.perform(get("/api/veiculos/" + veiculoSalvo.getId())
-                        )
+        mockMvc.perform(get("/api/veiculos/" + veiculoSalvo.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(veiculoSalvo.getId()))
                 .andExpect(jsonPath("$.placa").value("JKL1234"))
@@ -169,8 +164,7 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve retornar 404 ao buscar veículo inexistente")
     void deveRetornar404AoBuscarVeiculoInexistente() throws Exception {
-        mockMvc.perform(get("/api/veiculos/99999")
-                        )
+        mockMvc.perform(get("/api/veiculos/99999"))
                 .andExpect(status().isNotFound());
     }
 
@@ -193,8 +187,7 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         veiculo2.setCliente(cliente);
         veiculoRepository.save(veiculo2);
 
-        mockMvc.perform(get("/api/veiculos")
-                        )
+        mockMvc.perform(get("/api/veiculos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2));
@@ -226,8 +219,7 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         veiculoRepository.save(veiculo2);
 
         mockMvc.perform(get("/api/veiculos")
-                        .param("clienteId", cliente.getId().toString())
-                        )
+                        .param("clienteId", cliente.getId().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(1))
@@ -253,7 +245,6 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         atualizacaoDTO.setClienteId(cliente.getId());
 
         mockMvc.perform(put("/api/veiculos/" + veiculoSalvo.getId())
-                        
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(atualizacaoDTO)))
                 .andExpect(status().isOk())
@@ -273,16 +264,14 @@ class VeiculoControllerIntegrationTest extends BaseIntegrationTest {
         veiculo.setCliente(cliente);
         Veiculo veiculoSalvo = veiculoRepository.save(veiculo);
 
-        mockMvc.perform(delete("/api/veiculos/" + veiculoSalvo.getId())
-                        )
+        mockMvc.perform(delete("/api/veiculos/" + veiculoSalvo.getId()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @DisplayName("Deve retornar 404 ao deletar veículo inexistente")
     void deveRetornar404AoDeletarVeiculoInexistente() throws Exception {
-        mockMvc.perform(delete("/api/veiculos/99999")
-                        )
+        mockMvc.perform(delete("/api/veiculos/99999"))
                 .andExpect(status().isNotFound());
     }
 

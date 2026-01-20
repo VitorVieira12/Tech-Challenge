@@ -51,16 +51,12 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private OrdemDeServicoRepository ordemDeServicoRepository;
 
-    // Authentication disabled in tests via TestSecurityConfig
-    // No need for JWT token in test environment
-
     private Cliente clienteTeste;
     private Servico servicoTeste;
     private PecaInsumo pecaTeste;
 
     @BeforeEach
     void setUp() {
-        // Clear database before each test to avoid conflicts
         ordemDeServicoRepository.deleteAll();
         veiculoRepository.deleteAll();
         pecaInsumoRepository.deleteAll();
@@ -102,7 +98,6 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
     void devePermitirConsultaPublicaComCPFCorreto() throws Exception {
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         MvcResult createResult = mockMvc.perform(post("/api/ordens-servico")
-                        
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isCreated())
@@ -138,12 +133,10 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("Test triggers async email notification that fails after DB cleanup")
     @DisplayName("Deve atualizar status da OS com sucesso")
     void deveAtualizarStatusComSucesso() throws Exception {
         OrdemDeServicoInputDTO input = criarInputDTOValido();
         MvcResult createResult = mockMvc.perform(post("/api/ordens-servico")
-                        
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isCreated())
@@ -209,6 +202,3 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
         return input;
     }
 }
-
-
-

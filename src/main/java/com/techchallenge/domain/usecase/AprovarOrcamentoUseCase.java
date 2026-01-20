@@ -28,7 +28,6 @@ import java.time.LocalDateTime;
 public class AprovarOrcamentoUseCase {
 
     private final OrdemDeServicoRepository ordemDeServicoRepository;
-    private final com.techchallenge.domain.service.EmailNotificationService emailNotificationService;
 
     @Transactional
     public OrdemDeServicoResponseDTO executar(Long osId, AprovacaoOrcamentoInputDTO input) {
@@ -78,8 +77,6 @@ public class AprovarOrcamentoUseCase {
         OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
         
         log.info("Aprovação processada com sucesso para OS {}", osId);
-        
-        emailNotificationService.notificarMudancaStatusOS(osSalva);
         
         return OrdemDeServicoResponseDTO.fromEntity(osSalva);
     }

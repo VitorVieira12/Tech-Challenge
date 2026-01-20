@@ -1,0 +1,352 @@
+{
+  "comentario": "Payloads prontos para demonstração do vídeo - Tech Challenge",
+  "ordem_execucao": "Siga a numeração para criar dados relacionados corretamente",
+  
+  "1_autenticacao": {
+    "endpoint": "POST /api/auth/login",
+    "body": {
+      "username": "admin",
+      "password": "admin"
+    },
+    "nota": "Copie o token retornado e use no Swagger (botão Authorize)"
+  },
+  
+  "2_cliente": {
+    "endpoint": "POST /api/clientes",
+    "body": {
+      "nome": "João Silva",
+      "cpfCnpj": "12345678901",
+      "contato": "joao.silva@email.com"
+    },
+    "nota": "Anote o ID retornado (será usado em veículo e OS)"
+  },
+  
+  "3_veiculo": {
+    "endpoint": "POST /api/veiculos",
+    "body": {
+      "placa": "ABC1234",
+      "marca": "Toyota",
+      "modelo": "Corolla",
+      "ano": 2022,
+      "clienteId": 1
+    },
+    "nota": "Use o clienteId retornado no passo anterior"
+  },
+  
+  "4_peca_1": {
+    "endpoint": "POST /api/pecas-insumos",
+    "body": {
+      "nome": "Filtro de Óleo",
+      "descricao": "Filtro de óleo premium para motor 1.8",
+      "preco": 45.90,
+      "quantidadeEstoque": 100
+    },
+    "nota": "Anote o ID da peça"
+  },
+  
+  "5_peca_2": {
+    "endpoint": "POST /api/pecas-insumos",
+    "body": {
+      "nome": "Pastilha de Freio",
+      "descricao": "Pastilha de freio dianteira - jogo com 4 unidades",
+      "preco": 120.00,
+      "quantidadeEstoque": 50
+    },
+    "nota": "Segunda peça para demonstrar OS com múltiplas peças"
+  },
+  
+  "6_servico_1": {
+    "endpoint": "POST /api/servicos",
+    "body": {
+      "descricao": "Troca de óleo e filtro",
+      "preco": 150.00
+    },
+    "nota": "Anote o ID do serviço"
+  },
+  
+  "7_servico_2": {
+    "endpoint": "POST /api/servicos",
+    "body": {
+      "descricao": "Troca de pastilhas de freio",
+      "preco": 200.00
+    },
+    "nota": "Segundo serviço para demonstrar OS completa"
+  },
+  
+  "8_ordem_servico": {
+    "endpoint": "POST /api/ordens-servico",
+    "body": {
+      "cpfCnpjCliente": "12345678901",
+      "veiculo": {
+        "placa": "ABC1234",
+        "marca": "Toyota",
+        "modelo": "Corolla",
+        "ano": 2022
+      },
+      "servicos": [
+        {
+          "servicoId": 1,
+          "quantidade": 1
+        },
+        {
+          "servicoId": 2,
+          "quantidade": 1
+        }
+      ],
+      "pecas": [
+        {
+          "pecaInsumoId": 1,
+          "quantidade": 2
+        },
+        {
+          "pecaInsumoId": 2,
+          "quantidade": 1
+        }
+      ],
+      "observacoes": "Cliente solicitou revisão completa do veículo com troca de óleo e freios"
+    },
+    "nota": "OS completa! Anote o ID retornado",
+    "calculo_automatico": {
+      "servico_1": "R$ 150,00 x 1 = R$ 150,00",
+      "servico_2": "R$ 200,00 x 1 = R$ 200,00",
+      "peca_1": "R$ 45,90 x 2 = R$ 91,80",
+      "peca_2": "R$ 120,00 x 1 = R$ 120,00",
+      "total_esperado": "R$ 561,80"
+    }
+  },
+  
+  "9_atualizar_status": {
+    "endpoint": "PATCH /api/ordens-servico/1/status",
+    "body": {
+      "novoStatus": "EM_EXECUCAO",
+      "observacao": "Cliente aprovou o orçamento via telefone"
+    },
+    "nota": "Muda status de AGUARDANDO_APROVACAO para EM_EXECUCAO"
+  },
+  
+  "10_finalizar_os": {
+    "endpoint": "PATCH /api/ordens-servico/1/status",
+    "body": {
+      "novoStatus": "FINALIZADA",
+      "observacao": "Serviços concluídos com sucesso. Veículo pronto para retirada."
+    },
+    "nota": "Finaliza a OS (define dataFinalizacao automaticamente)"
+  },
+  
+  "11_entregar_os": {
+    "endpoint": "PATCH /api/ordens-servico/1/status",
+    "body": {
+      "novoStatus": "ENTREGUE",
+      "observacao": "Veículo entregue ao cliente"
+    },
+    "nota": "Estado final da OS (define dataEntrega automaticamente)"
+  },
+  
+  "12_aprovar_orcamento": {
+    "endpoint": "POST /api/ordens-servico/2/aprovar-orcamento",
+    "body": {
+      "aprovado": true,
+      "observacao": "Cliente aprovou o orçamento via WhatsApp"
+    },
+    "nota": "FASE 2 - Muda automaticamente para EM_EXECUCAO"
+  },
+  
+  "13_recusar_orcamento": {
+    "endpoint": "POST /api/ordens-servico/3/aprovar-orcamento",
+    "body": {
+      "aprovado": false,
+      "observacao": "Cliente achou o valor alto e desistiu do serviço"
+    },
+    "nota": "FASE 2 - Volta para RECEBIDA"
+  },
+  
+  "14_ajustar_estoque_adicionar": {
+    "endpoint": "PATCH /api/pecas-insumos/1/estoque?quantidadeAjuste=50",
+    "nota": "Adiciona 50 unidades ao estoque (nova compra)"
+  },
+  
+  "15_ajustar_estoque_remover": {
+    "endpoint": "PATCH /api/pecas-insumos/1/estoque?quantidadeAjuste=-10",
+    "nota": "Remove 10 unidades do estoque (ajuste de inventário)"
+  },
+  
+  "consultas": {
+    "listar_clientes": {
+      "endpoint": "GET /api/clientes",
+      "nota": "Lista todos os clientes"
+    },
+    "listar_veiculos": {
+      "endpoint": "GET /api/veiculos",
+      "nota": "Lista todos os veículos"
+    },
+    "listar_veiculos_cliente": {
+      "endpoint": "GET /api/veiculos?clienteId=1",
+      "nota": "Filtra veículos por cliente"
+    },
+    "listar_pecas": {
+      "endpoint": "GET /api/pecas-insumos",
+      "nota": "Lista todas as peças/insumos"
+    },
+    "listar_servicos": {
+      "endpoint": "GET /api/servicos",
+      "nota": "Lista todos os serviços"
+    },
+    "listar_os": {
+      "endpoint": "GET /api/ordens-servico",
+      "nota": "Lista todas as OSs"
+    },
+    "listar_os_aguardando": {
+      "endpoint": "GET /api/ordens-servico?status=AGUARDANDO_APROVACAO",
+      "nota": "Filtra OSs aguardando aprovação"
+    },
+    "listar_os_em_andamento": {
+      "endpoint": "GET /api/ordens-servico/em-andamento",
+      "nota": "FASE 2 - Lista ordenada por prioridade"
+    },
+    "consulta_publica": {
+      "endpoint": "GET /api/ordens-servico/status/1?cpfCnpj=12345678901",
+      "nota": "FASE 2 - Consulta pública (SEM token JWT!)"
+    },
+    "monitoramento": {
+      "endpoint": "GET /api/ordens-servico/monitoramento/tempo-medio",
+      "nota": "FASE 2 - Estatísticas de tempo médio"
+    }
+  },
+  
+  "dados_adicionais_para_demonstracao": {
+    "comentario": "Criar mais clientes e OSs para demonstrações variadas",
+    
+    "cliente_2": {
+      "endpoint": "POST /api/clientes",
+      "body": {
+        "nome": "Maria Santos",
+        "cpfCnpj": "98765432100",
+        "contato": "maria.santos@email.com"
+      }
+    },
+    
+    "cliente_3_empresa": {
+      "endpoint": "POST /api/clientes",
+      "body": {
+        "nome": "Transportadora XYZ Ltda",
+        "cpfCnpj": "12345678000199",
+        "contato": "(11) 98765-4321"
+      }
+    },
+    
+    "veiculo_2": {
+      "endpoint": "POST /api/veiculos",
+      "body": {
+        "placa": "XYZ5678",
+        "marca": "Honda",
+        "modelo": "Civic",
+        "ano": 2023,
+        "clienteId": 2
+      }
+    },
+    
+    "veiculo_3_mercosul": {
+      "endpoint": "POST /api/veiculos",
+      "body": {
+        "placa": "ABC1D23",
+        "marca": "Volkswagen",
+        "modelo": "Gol",
+        "ano": 2024,
+        "clienteId": 3
+      }
+    },
+    
+    "os_simples": {
+      "endpoint": "POST /api/ordens-servico",
+      "body": {
+        "cpfCnpjCliente": "98765432100",
+        "veiculo": {
+          "placa": "XYZ5678"
+        },
+        "servicos": [
+          {
+            "servicoId": 1,
+            "quantidade": 1
+          }
+        ],
+        "pecas": [],
+        "observacoes": "Serviço rápido sem troca de peças"
+      },
+      "nota": "OS simples (só serviço, sem peças)"
+    }
+  },
+  
+  "testes_de_validacao": {
+    "comentario": "Exemplos que DEVEM retornar erro (para demonstrar validações)",
+    
+    "cliente_cpf_invalido": {
+      "endpoint": "POST /api/clientes",
+      "body": {
+        "nome": "Teste Validação",
+        "cpfCnpj": "123456789",
+        "contato": "teste@email.com"
+      },
+      "erro_esperado": "400 Bad Request - CPF deve ter 11 dígitos"
+    },
+    
+    "veiculo_placa_invalida": {
+      "endpoint": "POST /api/veiculos",
+      "body": {
+        "placa": "INVALID",
+        "marca": "Toyota",
+        "modelo": "Corolla",
+        "ano": 2022,
+        "clienteId": 1
+      },
+      "erro_esperado": "400 Bad Request - Placa inválida"
+    },
+    
+    "peca_preco_negativo": {
+      "endpoint": "POST /api/pecas-insumos",
+      "body": {
+        "nome": "Teste",
+        "descricao": "Teste",
+        "preco": -10.00,
+        "quantidadeEstoque": 10
+      },
+      "erro_esperado": "400 Bad Request - Preço deve ser positivo"
+    },
+    
+    "os_estoque_insuficiente": {
+      "endpoint": "POST /api/ordens-servico",
+      "body": {
+        "cpfCnpjCliente": "12345678901",
+        "veiculo": {
+          "placa": "ABC1234"
+        },
+        "servicos": [
+          {
+            "servicoId": 1,
+            "quantidade": 1
+          }
+        ],
+        "pecas": [
+          {
+            "pecaInsumoId": 1,
+            "quantidade": 9999
+          }
+        ]
+      },
+      "erro_esperado": "400 Bad Request - Estoque insuficiente"
+    },
+    
+    "transicao_status_invalida": {
+      "endpoint": "PATCH /api/ordens-servico/1/status",
+      "body": {
+        "novoStatus": "ENTREGUE"
+      },
+      "erro_esperado": "400 Bad Request - Transição inválida (de AGUARDANDO_APROVACAO para ENTREGUE)",
+      "nota": "Não pode pular etapas"
+    }
+  }
+}
+
+
+
+
+

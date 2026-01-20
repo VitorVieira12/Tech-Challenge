@@ -42,7 +42,6 @@ public class OrdemDeServicoService {
     private final VeiculoRepository veiculoRepository;
     private final ServicoRepository servicoRepository;
     private final PecaInsumoRepository pecaInsumoRepository;
-    private final EmailNotificationService emailNotificationService;
 
     @Transactional
     public OrdemDeServicoResponseDTO criarOS(OrdemDeServicoInputDTO dto) {
@@ -279,8 +278,6 @@ public class OrdemDeServicoService {
         
         OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
         log.info("Status da OS {} atualizado com sucesso de {} para {}", id, statusAtual, novoStatus);
-        
-        emailNotificationService.notificarMudancaStatusOS(osSalva);
         
         return OrdemDeServicoResponseDTO.fromEntity(osSalva);
     }

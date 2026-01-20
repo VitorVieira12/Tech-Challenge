@@ -45,13 +45,8 @@ class ServicoControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PecaInsumoRepository pecaInsumoRepository;
 
-    // Authentication disabled in tests via TestSecurityConfig
-    // No need for JWT token in test environment
-
     @BeforeEach
     void setUp() {
-        // Clear database before each test to avoid conflicts
-        // Must follow FK dependency order
         ordemDeServicoRepository.deleteAll();
         veiculoRepository.deleteAll();
         pecaInsumoRepository.deleteAll();
@@ -83,8 +78,7 @@ class ServicoControllerIntegrationTest extends BaseIntegrationTest {
         servico.setPreco(new ValorMonetario(new BigDecimal("80.00")));
         Servico servicoSalvo = servicoRepository.save(servico);
 
-        mockMvc.perform(get("/api/servicos/" + servicoSalvo.getId())
-)
+        mockMvc.perform(get("/api/servicos/" + servicoSalvo.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(servicoSalvo.getId()))
                 .andExpect(jsonPath("$.descricao").value("Alinhamento e balanceamento"))
@@ -94,8 +88,7 @@ class ServicoControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("Deve retornar 404 ao buscar serviço inexistente")
     void deveRetornar404AoBuscarServicoInexistente() throws Exception {
-        mockMvc.perform(get("/api/servicos/99999")
-)
+        mockMvc.perform(get("/api/servicos/99999"))
                 .andExpect(status().isNotFound());
     }
 
@@ -112,8 +105,7 @@ class ServicoControllerIntegrationTest extends BaseIntegrationTest {
         servico2.setPreco(new ValorMonetario(new BigDecimal("200.00")));
         servicoRepository.save(servico2);
 
-        mockMvc.perform(get("/api/servicos")
-)
+        mockMvc.perform(get("/api/servicos"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2));
@@ -160,16 +152,14 @@ class ServicoControllerIntegrationTest extends BaseIntegrationTest {
         servico.setPreco(new ValorMonetario(new BigDecimal("50.00")));
         Servico servicoSalvo = servicoRepository.save(servico);
 
-        mockMvc.perform(delete("/api/servicos/" + servicoSalvo.getId())
-)
+        mockMvc.perform(delete("/api/servicos/" + servicoSalvo.getId()))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     @DisplayName("Deve retornar 404 ao deletar serviço inexistente")
     void deveRetornar404AoDeletarServicoInexistente() throws Exception {
-        mockMvc.perform(delete("/api/servicos/99999")
-)
+        mockMvc.perform(delete("/api/servicos/99999"))
                 .andExpect(status().isNotFound());
     }
 
