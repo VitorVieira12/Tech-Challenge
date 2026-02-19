@@ -1,0 +1,18 @@
+aws_region = "us-east-1"
+environment = "production"
+project_name = "tech-challenge"
+
+db_name = "tech_challenge"
+db_username = "admin"  # Change this!
+db_password = "CHANGE_ME_STRONG_PASSWORD"  # Change this!
+
+db_instance_class = "db.t3.micro"
+db_allocated_storage = 20
+db_engine_version = "15.4"
+
+backup_retention_period = 7
+multi_az = false  # Set to true for production
+
+vpc_cidr = "10.0.0.0/16"
+allowed_cidr_blocks = ["10.0.0.0/16"]
+
