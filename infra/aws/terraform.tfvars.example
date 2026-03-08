@@ -73,3 +73,4 @@ enable_deletion_protection = true  # true em produção
 allowed_cidr_blocks = ["10.0.0.0/16"]  # Apenas VPC interna
 
 
+

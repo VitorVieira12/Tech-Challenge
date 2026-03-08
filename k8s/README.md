@@ -319,3 +319,4 @@ curl http://localhost:8080/api/clientes
 6. **SSL/TLS:** Configurar certificados Let's Encrypt com cert-manager
 
 
+

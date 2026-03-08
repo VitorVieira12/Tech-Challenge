@@ -19,3 +19,4 @@ public class AprovacaoOrcamentoInputDTO {
     private String motivoRecusa; // Obrigatório se aprovado = false
 }
 
+

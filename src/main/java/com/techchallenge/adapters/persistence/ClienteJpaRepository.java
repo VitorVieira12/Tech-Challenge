@@ -17,3 +17,4 @@ public interface ClienteJpaRepository extends JpaRepository<ClienteJpaEntity, Lo
     boolean existsByCpfCnpj(String cpfCnpj);
 }
 
+

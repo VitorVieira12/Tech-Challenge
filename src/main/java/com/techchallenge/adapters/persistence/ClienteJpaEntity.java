@@ -34,3 +34,4 @@ public class ClienteJpaEntity {
     private boolean ativo = true;
 }
 
+

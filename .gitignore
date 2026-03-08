@@ -31,3 +31,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Secrets e Arquivos Sensíveis ###
+MEUS_SECRETS.txt
+*_SECRETS.txt
+*.tfvars
+!terraform.tfvars.example
+.env
+.env.local
