@@ -1,51 +1,68 @@
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### VS Code ###
-.vscode/
-
-### Mac ###
-.DS_Store
-
-### Git ###
+# Git
 .git
 .gitignore
+.gitattributes
 
-### Docker ###
-Dockerfile
-docker-compose.yml
-.dockerignore
-
-### Documentation ###
+# Documentation
 *.md
-!README.md
+docs/
+GUIA_*.md
+CHECKLIST_*.md
+RESUMO_*.md
+TRABALHO_*.md
+ESCLARECIMENTO_*.md
+IMPLEMENTACAO_*.md
+ARQUITETURA.md
 
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.settings/
+.classpath
+.project
 
+# Build
+target/
+build/
+*.class
+*.jar
+*.war
+!.mvn/wrapper/maven-wrapper.jar
 
+# Tests
+src/test/
+
+# Secrets
+MEUS_SECRETS.txt
+*_SECRETS.txt
+*.tfvars
+.env
+.env.*
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+infra/
+
+# Kubernetes
+k8s/
+
+# Scripts
+scripts/
+*.sh
+push-repos.ps1
+
+# Repos folder
+repos/
+
+# Misc
+*.log
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
