@@ -2,9 +2,9 @@ name: CI/CD - Build, Test and Deploy
 
 on:
   push:
-    branches: [main, fase-3]
+    branches: [master, fase-3]
   pull_request:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 env:
@@ -98,7 +98,7 @@ jobs:
     name: Deploy to EKS
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fase-3'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/fase-3'
     
     steps:
       - name: Checkout code

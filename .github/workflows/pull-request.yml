@@ -3,8 +3,8 @@ name: Pull Request Validation
 on:
   pull_request:
     branches:
-      - main
-      - develop
+      - master
+      - fase-3
     types: [opened, synchronize, reopened]
 
 env:
