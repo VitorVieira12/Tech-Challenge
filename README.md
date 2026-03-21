@@ -658,12 +658,74 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 🔗 Links Úteis
 
+### 🌐 Deploy em Produção (AWS)
+- **API Base URL:** http://a8ee8070f02404420b7817f981e33463-d5a383da039125b0.elb.us-east-1.amazonaws.com
+- **Swagger UI (Produção):** http://a8ee8070f02404420b7817f981e33463-d5a383da039125b0.elb.us-east-1.amazonaws.com/swagger-ui.html
+- **OpenAPI Docs (Produção):** http://a8ee8070f02404420b7817f981e33463-d5a383da039125b0.elb.us-east-1.amazonaws.com/v3/api-docs
+- **Health Check:** http://a8ee8070f02404420b7817f981e33463-d5a383da039125b0.elb.us-east-1.amazonaws.com/actuator/health
+
+### 🏗️ Repositórios da Fase 3
+- **[tech-challenge-infra-db](https://github.com/VitorVieira12/tech-challenge-infra-db)** — Terraform RDS PostgreSQL
+- **[tech-challenge-infra-k8s](https://github.com/VitorVieira12/tech-challenge-infra-k8s)** — Terraform EKS + Kubernetes
+- **[tech-challenge-lambda](https://github.com/VitorVieira12/tech-challenge-lambda)** — Lambda Autenticação CPF
+
+### 📊 Monitoramento
+- **New Relic Dashboard:** https://one.newrelic.com (App: `Tech Challenge - Oficina`)
+
+### 📚 Documentação
 - **Swagger UI Local:** http://localhost:8080/swagger-ui.html
-- **OpenAPI Docs:** http://localhost:8080/v3/api-docs
+- **OpenAPI Docs Local:** http://localhost:8080/v3/api-docs
 - **Spring Boot:** https://spring.io/projects/spring-boot
 - **Kubernetes:** https://kubernetes.io/
 - **Terraform:** https://www.terraform.io/
 
 ---
 
-**Desenvolvido com ❤️ usando Spring Boot 3 e Java 21**
+## 🏗️ Arquitetura Fase 3 — Visão Geral
+
+```
+                        ┌─────────────────────────────────┐
+                        │           AWS us-east-1          │
+                        │                                 │
+  Cliente               │  ┌──────────────────────────┐  │
+  (CPF/CNPJ) ─────────▶│  │      API Gateway          │  │
+                        │  │   (HTTP API v2)           │  │
+                        │  └────────────┬─────────────┘  │
+                        │               │                 │
+                        │    ┌──────────▼──────────┐     │
+                        │    │   Lambda (Auth)      │     │
+                        │    │   AuthHandler.java   │     │
+                        │    │   → Valida CPF       │     │
+                        │    │   → Gera JWT Token   │     │
+                        │    └──────────┬──────────┘     │
+                        │               │                 │
+  JWT Token ◀────────── │  ─────────────┘                 │
+                        │                                 │
+  API Requests          │  ┌──────────────────────────┐  │
+  (com JWT) ──────────▶ │  │  EKS Cluster (t3.small)  │  │
+                        │  │  ┌────────────────────┐   │  │
+                        │  │  │  Spring Boot App    │   │  │
+                        │  │  │  + New Relic Agent  │   │  │
+                        │  │  │  + HPA (auto-scale) │   │  │
+                        │  │  └────────────────────┘   │  │
+                        │  └──────────────┬─────────────┘  │
+                        │                 │                 │
+                        │  ┌──────────────▼─────────────┐  │
+                        │  │      RDS PostgreSQL 15      │  │
+                        │  │    tech-challenge-db        │  │
+                        │  └────────────────────────────┘  │
+                        │                                 │
+                        │  ┌──────────────────────────┐  │
+                        │  │  New Relic               │  │
+                        │  │  (Monitoramento)         │  │
+                        │  └──────────────────────────┘  │
+                        └─────────────────────────────────┘
+```
+
+## 🤝 Colaborador avaliador
+
+- **soat-architecture** — adicionado como colaborador para avaliação
+
+---
+
+**Desenvolvido com ❤️ usando Spring Boot 3, Java 21, AWS EKS, Lambda e Terraform**
