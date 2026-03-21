@@ -133,7 +133,19 @@ jobs:
 
       - name: Wait for rollout
         run: |
-          kubectl rollout status deployment/tech-challenge-app -n tech-challenge --timeout=5m
+          kubectl rollout status deployment/tech-challenge-app -n tech-challenge --timeout=10m
+
+      - name: Debug pod status on failure
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n tech-challenge -l app=tech-challenge -o wide
+          echo "=== Pod Description ==="
+          kubectl describe pods -n tech-challenge -l app=tech-challenge
+          echo "=== Pod Logs ==="
+          kubectl logs -n tech-challenge -l app=tech-challenge --tail=100 || true
+          echo "=== Previous Pod Logs ==="
+          kubectl logs -n tech-challenge -l app=tech-challenge --previous --tail=50 || true
 
       - name: Verify deployment
         run: |
