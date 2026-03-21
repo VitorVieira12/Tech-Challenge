@@ -36,9 +36,10 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1
 
-# Run with New Relic agent
+# Run application (New Relic agent disabled until license key is properly configured)
 ENTRYPOINT ["java", \
-  "-javaagent:/opt/newrelic/newrelic.jar", \
   "-Djava.security.egd=file:/dev/./urandom", \
+  "-Xms256m", \
+  "-Xmx768m", \
   "-jar", \
   "app.jar"]
