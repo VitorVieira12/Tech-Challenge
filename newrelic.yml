@@ -1,0 +1,77 @@
+common: &default_settings
+  license_key: <%= ENV["NEW_RELIC_LICENSE_KEY"] %>
+  app_name: <%= ENV["NEW_RELIC_APP_NAME"] || "Tech-Challenge" %>
+
+  # Distributed Tracing (habilita traces entre serviços)
+  distributed_tracing:
+    enabled: true
+
+  # Logs in context - envia logs para New Relic correlacionados com traces
+  application_logging:
+    enabled: true
+    forwarding:
+      enabled: true
+      max_samples_stored: 10000
+    metrics:
+      enabled: true
+    local_decorating:
+      enabled: false
+
+  # Enviar logs para stdout (stdout é coletado pelo New Relic Infrastructure no K8s)
+  log_file_name: STDOUT
+  log_level: info
+
+  # Instrumentação automática de frameworks
+  transaction_tracer:
+    enabled: true
+    transaction_threshold: 0.5 # segundos - tracing de transações acima de 500ms
+    record_sql: obfuscated
+    log_sql: false
+    stack_trace_threshold: 0.5
+
+  # Error collector
+  error_collector:
+    enabled: true
+    ignore_status_codes: 404
+
+  # Thread profiler
+  thread_profiler:
+    enabled: true
+
+  # JVM metrics
+  jvm:
+    enabled: true
+
+  # Kafka (se for usar no futuro)
+  kafka:
+    metrics:
+      enabled: true
+
+  # Browser monitoring (desabilitado - só API)
+  browser_monitoring:
+    auto_instrument: false
+
+  # Custom insights events
+  custom_insights_events:
+    enabled: true
+    max_samples_stored: 30000
+
+  # Span events
+  span_events:
+    enabled: true
+    max_samples_stored: 2000
+
+  # Slow SQL
+  slow_sql:
+    enabled: true
+
+  # Labels (aparecem no dashboard como filtros)
+  labels:
+    Environment: production
+    Service: tech-challenge-app
+    Team: soat
+
+# Configuração para ambiente de produção (Kubernetes)
+production:
+  <<: *default_settings
+  app_name: Tech-Challenge (Production)

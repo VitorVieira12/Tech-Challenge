@@ -118,6 +118,21 @@ jobs:
       - name: Check EKS connection
         run: kubectl get nodes
 
+      - name: Create namespace if not exists
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+
+      - name: Apply New Relic secret
+        run: |
+          kubectl create secret generic newrelic-secret \
+            --namespace=tech-challenge \
+            --from-literal=NEW_RELIC_LICENSE_KEY=${{ secrets.NEW_RELIC_LICENSE_KEY }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply New Relic Infrastructure (DaemonSet)
+        run: |
+          kubectl apply -f k8s/newrelic-infrastructure.yaml
+
       - name: Set image tag
         id: image
         run: |

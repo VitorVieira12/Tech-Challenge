@@ -26,6 +26,9 @@ RUN apk add --no-cache unzip && \
     rm /tmp/newrelic-java.zip && \
     apk del unzip
 
+# Copy New Relic agent configuration (license key and app name via env vars at runtime)
+COPY newrelic.yml /opt/newrelic/newrelic.yml
+
 # Copy built JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
 
