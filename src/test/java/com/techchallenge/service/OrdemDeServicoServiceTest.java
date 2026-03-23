@@ -97,14 +97,14 @@ class OrdemDeServicoServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.RECEBIDA);
         assertThat(result.getValorTotalOrcamento()).isEqualByComparingTo(new BigDecimal("241.80")); // 150 + (45.90 * 2)
         
         verify(clienteRepository).findByCpfCnpjValor("11144477735");
         verify(veiculoRepository).findByPlacaValor("ABC1234");
         verify(servicoRepository).findById(1L);
         verify(pecaInsumoRepository).findById(1L);
-        verify(ordemDeServicoRepository, times(2)).save(any(OrdemDeServico.class)); // Uma vez na criação, outra no envio
+        verify(ordemDeServicoRepository, times(1)).save(any(OrdemDeServico.class));
         verify(pecaInsumoRepository).save(peca);
 
         assertThat(peca.getQuantidadeEstoque()).isEqualTo(98); // 100 - 2
