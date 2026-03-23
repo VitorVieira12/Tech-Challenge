@@ -27,4 +27,8 @@ data:
   # Timezone
   TZ: America/Sao_Paulo
 
+  # New Relic APM
+  NEW_RELIC_APP_NAME: "Tech-Challenge"
+
+
 

@@ -104,7 +104,7 @@ class OrdemDeServicoServiceTest {
         verify(veiculoRepository).findByPlacaValor("ABC1234");
         verify(servicoRepository).findById(1L);
         verify(pecaInsumoRepository).findById(1L);
-        verify(ordemDeServicoRepository, times(2)).save(any(OrdemDeServico.class)); // Uma vez na criação, outra no envio
+        verify(ordemDeServicoRepository, times(2)).save(any(OrdemDeServico.class)); // primeira save (RECEBIDA), segunda (AGUARDANDO_APROVACAO)
         verify(pecaInsumoRepository).save(peca);
 
         assertThat(peca.getQuantidadeEstoque()).isEqualTo(98); // 100 - 2

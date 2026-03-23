@@ -1,0 +1,244 @@
+{
+  "name": "Tech Challenge - Ordens de Serviço",
+  "description": "Dashboard de monitoramento das Ordens de Serviço - Fase 3",
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "Visão Geral",
+      "description": "Métricas gerais da aplicação e ordens de serviço",
+      "widgets": [
+        {
+          "title": "Volume Diário de Ordens de Serviço",
+          "layout": { "column": 1, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) as 'Ordens criadas' FROM Transaction WHERE appName = 'Tech-Challenge' AND request.uri LIKE '%ordens-de-servico%' AND request.method = 'POST' SINCE 1 day ago TIMESERIES 1 hour"
+              }
+            ],
+            "platformOptions": { "ignoreTimeRange": false }
+          }
+        },
+        {
+          "title": "Total de Ordens (Hoje)",
+          "layout": { "column": 7, "row": 1, "width": 3, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.billboard" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) as 'Total de Ordens' FROM Transaction WHERE appName = 'Tech-Challenge' AND request.uri LIKE '%ordens-de-servico%' SINCE 1 day ago"
+              }
+            ],
+            "thresholds": [
+              { "alertSeverity": "WARNING", "value": 100 },
+              { "alertSeverity": "CRITICAL", "value": 500 }
+            ]
+          }
+        },
+        {
+          "title": "Taxa de Erros (%)",
+          "layout": { "column": 10, "row": 1, "width": 3, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.billboard" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT percentage(count(*), WHERE error IS true) as 'Taxa de Erro %' FROM Transaction WHERE appName = 'Tech-Challenge' SINCE 1 day ago"
+              }
+            ],
+            "thresholds": [
+              { "alertSeverity": "WARNING", "value": 2 },
+              { "alertSeverity": "CRITICAL", "value": 5 }
+            ]
+          }
+        },
+        {
+          "title": "Tempo Médio de Execução por Status da Ordem",
+          "layout": { "column": 1, "row": 4, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(duration) * 1000 as 'Tempo médio (ms)' FROM Transaction WHERE appName = 'Tech-Challenge' AND request.uri LIKE '%ordens-de-servico%' FACET CASES(WHERE request.uri LIKE '%status=DIAGNOSTICO%' AS 'Diagnóstico', WHERE request.uri LIKE '%status=EXECUCAO%' AS 'Execução', WHERE request.uri LIKE '%status=FINALIZADO%' AS 'Finalização') SINCE 1 day ago"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Tempo Médio de Resposta das APIs (ms)",
+          "layout": { "column": 7, "row": 4, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(duration) * 1000 as 'Latência (ms)' FROM Transaction WHERE appName = 'Tech-Challenge' FACET request.uri SINCE 1 day ago TIMESERIES 30 minutes LIMIT 10"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Erros e Falhas nas Integrações",
+          "layout": { "column": 1, "row": 7, "width": 8, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) as 'Quantidade', latest(errorMessage) as 'Mensagem', latest(request.uri) as 'Endpoint' FROM TransactionError WHERE appName = 'Tech-Challenge' FACET errorClass SINCE 1 day ago LIMIT 20"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Throughput (rpm)",
+          "layout": { "column": 9, "row": 7, "width": 4, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.area" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT rate(count(*), 1 minute) as 'Requisições/min' FROM Transaction WHERE appName = 'Tech-Challenge' SINCE 1 day ago TIMESERIES 10 minutes"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Infraestrutura Kubernetes",
+      "description": "CPU, memória e saúde do cluster",
+      "widgets": [
+        {
+          "title": "CPU dos Nodes (%)",
+          "layout": { "column": 1, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(cpuUsedCores / cpuLimitCores * 100) as 'CPU %' FROM K8sContainerSample WHERE clusterName = 'tech-challenge-cluster' FACET nodeName SINCE 1 hour ago TIMESERIES 5 minutes"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Memória dos Pods (Mi)",
+          "layout": { "column": 7, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(memoryUsedBytes / 1048576) as 'Memória (Mi)' FROM K8sContainerSample WHERE clusterName = 'tech-challenge-cluster' AND namespaceName = 'tech-challenge' FACET podName SINCE 1 hour ago TIMESERIES 5 minutes"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Status dos Pods",
+          "layout": { "column": 1, "row": 4, "width": 4, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.pie" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT uniqueCount(podName) FROM K8sPodSample WHERE clusterName = 'tech-challenge-cluster' AND namespaceName = 'tech-challenge' FACET status SINCE 10 minutes ago"
+              }
+            ]
+          }
+        },
+        {
+          "title": "HPA - Replicas Atuais vs Desejadas",
+          "layout": { "column": 5, "row": 4, "width": 8, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT latest(currentReplicas) as 'Réplicas Atuais', latest(desiredReplicas) as 'Réplicas Desejadas' FROM K8sHpaSample WHERE clusterName = 'tech-challenge-cluster' FACET hpaName SINCE 1 hour ago TIMESERIES 5 minutes"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Healthcheck - Uptime dos Pods",
+          "layout": { "column": 1, "row": 7, "width": 12, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT latest(status) as 'Status', latest(createdAt) as 'Criado em', latest(nodeName) as 'Node' FROM K8sPodSample WHERE clusterName = 'tech-challenge-cluster' AND namespaceName = 'tech-challenge' FACET podName SINCE 10 minutes ago"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logs e Traces",
+      "description": "Logs estruturados e distributed tracing",
+      "widgets": [
+        {
+          "title": "Logs Recentes (Erros)",
+          "layout": { "column": 1, "row": 1, "width": 12, "height": 4 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT timestamp, level, message, trace.id, span.id FROM Log WHERE service.name = 'Tech-Challenge' AND level IN ('ERROR', 'WARN') SINCE 1 hour ago LIMIT 50"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Volume de Logs por Nível",
+          "layout": { "column": 1, "row": 5, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT count(*) FROM Log WHERE service.name = 'Tech-Challenge' FACET level SINCE 1 hour ago"
+              }
+            ]
+          }
+        },
+        {
+          "title": "Distributed Tracing - Spans mais Lentos",
+          "layout": { "column": 7, "row": 5, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountIds": [],
+                "query": "SELECT average(duration.ms) as 'Duração média (ms)', count(*) as 'Quantidade' FROM Span WHERE appName = 'Tech-Challenge' FACET name SINCE 1 hour ago LIMIT 10 ORDER BY average(duration.ms) DESC"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

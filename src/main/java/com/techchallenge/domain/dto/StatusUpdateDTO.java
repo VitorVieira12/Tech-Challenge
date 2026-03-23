@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StatusUpdateDTO {
-    
+
     @NotNull(message = "O status é obrigatório")
     private StatusOrdemServico novoStatus;
-    
+
     private String observacao;
 }
 

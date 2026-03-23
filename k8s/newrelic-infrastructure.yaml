@@ -1,0 +1,200 @@
+---
+# ServiceAccount para o New Relic Infrastructure
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: newrelic-infrastructure
+  namespace: tech-challenge
+  labels:
+    app: newrelic-infrastructure
+
+---
+# ClusterRole com permissões de leitura no cluster K8s
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: newrelic-infrastructure
+  labels:
+    app: newrelic-infrastructure
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/metrics
+      - nodes/stats
+      - nodes/proxy
+      - pods
+      - services
+      - replicationcontrollers
+      - persistentvolumes
+      - persistentvolumeclaims
+      - namespaces
+      - endpoints
+      - events
+      - configmaps
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources:
+      - daemonsets
+      - deployments
+      - replicasets
+      - statefulsets
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["autoscaling"]
+    resources:
+      - horizontalpodautoscalers
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+    verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: newrelic-infrastructure
+  labels:
+    app: newrelic-infrastructure
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: newrelic-infrastructure
+subjects:
+  - kind: ServiceAccount
+    name: newrelic-infrastructure
+    namespace: tech-challenge
+
+---
+# ConfigMap com a configuração da integração Kubernetes
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: newrelic-infrastructure-config
+  namespace: tech-challenge
+  labels:
+    app: newrelic-infrastructure
+data:
+  newrelic-infra.yml: |
+    # Envia dados de infraestrutura para o New Relic
+    license_key: ${NRIA_LICENSE_KEY}
+    display_name: tech-challenge-cluster
+
+    # Coleta logs de containers
+    log_format: json
+
+    # Integração com Kubernetes
+    integrations_config_path: /etc/newrelic-infra/integrations.d/
+
+---
+# DaemonSet - roda em cada node do cluster para coletar métricas de CPU/memória
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: newrelic-infrastructure
+  namespace: tech-challenge
+  labels:
+    app: newrelic-infrastructure
+spec:
+  selector:
+    matchLabels:
+      app: newrelic-infrastructure
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: newrelic-infrastructure
+    spec:
+      serviceAccountName: newrelic-infrastructure
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+        - operator: Exists
+          effect: NoSchedule
+        - operator: Exists
+          effect: NoExecute
+      containers:
+        - name: newrelic-infrastructure
+          image: newrelic/infrastructure-bundle:latest
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          env:
+            - name: NRIA_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: newrelic-secret
+                  key: NEW_RELIC_LICENSE_KEY
+            - name: NRIA_VERBOSE
+              value: "0"
+            - name: NRIA_DISPLAY_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NRI_KUBERNETES_SINK_HTTP_SERVER_ADDRESS
+              value: "0.0.0.0:8001"
+            - name: CLUSTER_NAME
+              value: "tech-challenge-cluster"
+            # Integração Kubernetes
+            - name: NRIA_PASSTHROUGH_ENVIRONMENT
+              value: "KUBERNETES_SERVICE_HOST,KUBERNETES_SERVICE_PORT,CLUSTER_NAME,CADVISOR_PORT,NRK8S_NODE_NAME,KUBE_STATE_METRICS_URL,KUBE_STATE_METRICS_POD_LABEL,TIMEOUT,ETCD_TLS_SECRET_NAME,ETCD_TLS_SECRET_NAMESPACE,API_SERVER_SECURE_PORT,KUBE_STATE_METRICS_SCHEME,KUBE_STATE_METRICS_PORT,SCHEDULER_ENDPOINT_URL,ETCD_ENDPOINT_URL,CONTROLLER_MANAGER_ENDPOINT_URL,API_SERVER_ENDPOINT_URL,DISABLE_KUBE_STATE_METRICS,KUBE_STATE_METRICS_NAMESPACE"
+            - name: NRK8S_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - mountPath: /host
+              name: host-volume
+              readOnly: true
+            - mountPath: /var/run/docker.sock
+              name: host-docker-socket
+            - mountPath: /run/containerd/containerd.sock
+              name: containerd-socket
+            - mountPath: /sys
+              name: host-sys
+              readOnly: true
+            - mountPath: /var/log
+              name: host-log
+            - mountPath: /etc/newrelic-infra
+              name: nri-default-config-volume
+            - name: host-cgroup
+              mountPath: /sys/fs/cgroup
+          resources:
+            requests:
+              memory: "150Mi"
+              cpu: "100m"
+            limits:
+              memory: "300Mi"
+              cpu: "200m"
+      volumes:
+        - name: host-volume
+          hostPath:
+            path: /
+        - name: host-docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+        - name: containerd-socket
+          hostPath:
+            path: /run/containerd/containerd.sock
+        - name: host-sys
+          hostPath:
+            path: /sys
+        - name: host-log
+          hostPath:
+            path: /var/log
+        - name: host-cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+        - name: nri-default-config-volume
+          configMap:
+            name: newrelic-infrastructure-config
+            items:
+              - key: newrelic-infra.yml
+                path: newrelic-infra.yml

@@ -30,6 +30,9 @@ public class Cliente {
     @Embedded
     private Contato contato;
 
+    @Column(nullable = false)
+    private boolean ativo = true;
+
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Veiculo> veiculos = new ArrayList<>();
 }

@@ -2,34 +2,48 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
+# Copy pom.xml and download dependencies (cached layer)
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# Copy source code and build
+# Copy source code
 COPY src ./src
-RUN mvn clean package -DskipTests
+
+# Build application (skip tests for faster builds)
+RUN mvn clean package -DskipTests -B
 
 # Stage 2: Runtime
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Add a non-root user
-RUN addgroup -S spring && adduser -S spring -G spring
-USER spring:spring
+# Install curl for health checks
+RUN apk add --no-cache curl
 
-# Copy the jar from build stage
+# Download New Relic Java Agent
+ADD https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip /tmp/
+RUN apk add --no-cache unzip && \
+    unzip /tmp/newrelic-java.zip -d /opt/ && \
+    rm /tmp/newrelic-java.zip && \
+    apk del unzip
+
+# Copy New Relic agent configuration (license key and app name via env vars at runtime)
+COPY newrelic.yml /opt/newrelic/newrelic.yml
+
+# Copy built JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
 
 # Expose port
 EXPOSE 8080
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
-
-
+# Run with New Relic agent for monitoring
+ENTRYPOINT ["java", \
+  "-javaagent:/opt/newrelic/newrelic.jar", \
+  "-Djava.security.egd=file:/dev/./urandom", \
+  "-Xms256m", \
+  "-Xmx768m", \
+  "-jar", \
+  "app.jar"]

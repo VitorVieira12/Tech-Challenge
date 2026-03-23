@@ -57,8 +57,29 @@ app:
     enabled: ${EMAIL_ENABLED:false}  # true para produção, false para dev (apenas loga)
 
 logging:
+  # Formato JSON estruturado para coleta pelo New Relic (ECS = Elastic Common Schema)
+  structured:
+    format:
+      console: ecs
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     com.techchallenge.security: DEBUG
     com.techchallenge.domain.service.EmailNotificationService: INFO
+
+# Spring Boot Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true

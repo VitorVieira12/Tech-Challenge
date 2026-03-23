@@ -68,6 +68,34 @@ spec:
             secretKeyRef:
               name: app-secrets
               key: JWT_SECRET
+        # New Relic APM
+        - name: NEW_RELIC_LICENSE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: newrelic-secret
+              key: NEW_RELIC_LICENSE_KEY
+        - name: NEW_RELIC_APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: NEW_RELIC_APP_NAME
+        # Expõe metadados do pod ao agente New Relic (distributed tracing)
+        - name: NEW_RELIC_METADATA_KUBERNETES_CLUSTER_NAME
+          value: "tech-challenge-cluster"
+        - name: NEW_RELIC_METADATA_KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: NEW_RELIC_METADATA_KUBERNETES_NAMESPACE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NEW_RELIC_METADATA_KUBERNETES_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NEW_RELIC_METADATA_KUBERNETES_CONTAINER_NAME
+          value: app
         - name: JAVA_OPTS
           value: "-Xms512m -Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
         
@@ -112,4 +140,5 @@ spec:
       
       # Graceful shutdown
       terminationGracePeriodSeconds: 30
+
 

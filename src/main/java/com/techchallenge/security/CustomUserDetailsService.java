@@ -17,31 +17,28 @@ import java.util.Map;
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final Map<String, UserDetails> users = new HashMap<>();
+    private final Map<String, String> userPasswords = new HashMap<>();
 
     public CustomUserDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("admin"))
-                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")))
-                .build();
-        
-        users.put("admin", admin);
-        
+        userPasswords.put("admin", passwordEncoder.encode("admin"));
         log.info("User 'admin' created successfully for MVP");
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserDetails user = users.get(username);
-        
-        if (user == null) {
+        String encodedPassword = userPasswords.get(username);
+
+        if (encodedPassword == null) {
             log.warn("User '{}' not found", username);
             throw new UsernameNotFoundException("User not found: " + username);
         }
-        
+
         log.debug("User '{}' loaded successfully", username);
-        return user;
+        return User.builder()
+                .username(username)
+                .password(encodedPassword)
+                .authorities(Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")))
+                .build();
     }
 }
 

@@ -443,3 +443,4 @@ Para aplicar este padrão aos demais módulos:
 
 **Arquitetura implementada seguindo feedback do professor e best practices de Clean Architecture!** 🎉
 
+

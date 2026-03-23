@@ -76,3 +76,4 @@ variable "allowed_cidr_blocks" {
   default     = ["10.0.0.0/16"]  # Same as VPC
 }
 
+

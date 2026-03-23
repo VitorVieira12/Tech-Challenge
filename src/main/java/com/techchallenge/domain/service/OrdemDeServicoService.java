@@ -107,7 +107,11 @@ public class OrdemDeServicoService {
         OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
         log.info("OS criada com sucesso. ID: {}, Valor Total: {}", osSalva.getId(), valorTotal);
 
-        simularEnvioOrcamento(osSalva);
+        osSalva.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        osSalva = ordemDeServicoRepository.save(osSalva);
+        log.info("OS {} avançada automaticamente para AGUARDANDO_APROVACAO", osSalva.getId());
+
+        logOrcamento(osSalva);
 
         return OrdemDeServicoResponseDTO.fromEntity(osSalva);
     }
@@ -187,18 +191,15 @@ public class OrdemDeServicoService {
         return pecas;
     }
 
-    private void simularEnvioOrcamento(OrdemDeServico os) {
+    private void logOrcamento(OrdemDeServico os) {
         log.info("=================================================");
-        log.info("SIMULAÇÃO: Enviando orçamento ao cliente");
+        log.info("OS registrada com sucesso");
         log.info("Cliente: {} ({})", os.getCliente().getNome(), os.getCliente().getContato());
-        log.info("Veículo: {} - {}", os.getVeiculo().getPlaca(), 
+        log.info("Veículo: {} - {}", os.getVeiculo().getPlaca(),
                  os.getVeiculo().getMarca() + " " + os.getVeiculo().getModelo());
         log.info("Valor Total: R$ {}", os.getValorTotalOrcamento());
-        log.info("Status: Aguardando aprovação do cliente");
+        log.info("Status inicial: {}", os.getStatus());
         log.info("=================================================");
-
-        os.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
-        ordemDeServicoRepository.save(os);
     }
 
     @Transactional(readOnly = true)
