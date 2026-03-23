@@ -107,6 +107,10 @@ public class OrdemDeServicoService {
         OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
         log.info("OS criada com sucesso. ID: {}, Valor Total: {}", osSalva.getId(), valorTotal);
 
+        osSalva.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        osSalva = ordemDeServicoRepository.save(osSalva);
+        log.info("OS {} avançada automaticamente para AGUARDANDO_APROVACAO", osSalva.getId());
+
         logOrcamento(osSalva);
 
         return OrdemDeServicoResponseDTO.fromEntity(osSalva);

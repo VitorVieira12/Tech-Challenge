@@ -115,7 +115,7 @@ public class OrdemDeServicoController {
     )
     public ResponseEntity<OrdemDeServicoResponseDTO> atualizar(
             @PathVariable Long id,
-            @Valid @RequestBody OrdemDeServicoUpdateDTO updateDTO) {
+            @Valid @org.springframework.web.bind.annotation.RequestBody OrdemDeServicoUpdateDTO updateDTO) {
         
         OrdemDeServicoResponseDTO response = ordemDeServicoService.atualizarOrdemServico(id, updateDTO);
         return ResponseEntity.ok(response);
@@ -128,7 +128,7 @@ public class OrdemDeServicoController {
     )
     public ResponseEntity<OrdemDeServicoResponseDTO> atualizarStatus(
             @PathVariable Long id,
-            @Valid @RequestBody StatusUpdateDTO statusUpdateDTO) {
+            @Valid @org.springframework.web.bind.annotation.RequestBody StatusUpdateDTO statusUpdateDTO) {
         
         OrdemDeServicoResponseDTO response = ordemDeServicoService.atualizarStatus(id, statusUpdateDTO);
         return ResponseEntity.ok(response);
@@ -162,7 +162,7 @@ public class OrdemDeServicoController {
     )
     public ResponseEntity<OrdemDeServicoResponseDTO> aprovarOrcamento(
             @PathVariable Long id,
-            @Valid @RequestBody AprovacaoOrcamentoInputDTO aprovacaoDTO) {
+            @Valid @org.springframework.web.bind.annotation.RequestBody AprovacaoOrcamentoInputDTO aprovacaoDTO) {
         
         OrdemDeServicoResponseDTO response = aprovarOrcamentoUseCase.executar(id, aprovacaoDTO);
         return ResponseEntity.ok(response);
