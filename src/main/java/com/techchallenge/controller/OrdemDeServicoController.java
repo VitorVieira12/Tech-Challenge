@@ -12,6 +12,9 @@ import com.techchallenge.domain.service.OrdemDeServicoService;
 import com.techchallenge.domain.usecase.AprovarOrcamentoUseCase;
 import com.techchallenge.domain.usecase.ListarOrdensServicoUseCase;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +35,49 @@ public class OrdemDeServicoController {
     private final ListarOrdensServicoUseCase listarOrdensServicoUseCase;
 
     @PostMapping
-    public ResponseEntity<OrdemDeServicoResponseDTO> criar(@Valid @RequestBody OrdemDeServicoInputDTO dto) {
+    @Operation(
+        summary = "Criar Ordem de Serviço",
+        description = """
+            Cria uma nova OS. O cliente deve existir previamente (use POST /api/clientes).
+            O veículo será criado automaticamente se a placa não existir.
+            
+            Fluxo de status:
+            RECEBIDA → EM_DIAGNOSTICO → AGUARDANDO_APROVACAO → EM_EXECUCAO → FINALIZADA → ENTREGUE
+            
+            Após criar a OS, avance o status manualmente via PATCH /{id}/status.
+            """
+    )
+    @RequestBody(
+        description = "Dados para abertura da OS",
+        required = true,
+        content = @Content(
+            mediaType = "application/json",
+            examples = @ExampleObject(
+                name = "Exemplo completo",
+                value = """
+                    {
+                      "cpfCnpjCliente": "02103264681",
+                      "veiculo": {
+                        "placa": "ABC1234",
+                        "marca": "Honda",
+                        "modelo": "Civic",
+                        "ano": 2022
+                      },
+                      "servicos": [
+                        {
+                          "servicoId": 1,
+                          "quantidade": 1
+                        }
+                      ],
+                      "pecas": [],
+                      "observacoes": "Carro não liga, possível problema na bateria"
+                    }
+                    """
+            )
+        )
+    )
+    public ResponseEntity<OrdemDeServicoResponseDTO> criar(
+            @Valid @org.springframework.web.bind.annotation.RequestBody OrdemDeServicoInputDTO dto) {
         OrdemDeServicoResponseDTO response = ordemDeServicoService.criarOS(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
