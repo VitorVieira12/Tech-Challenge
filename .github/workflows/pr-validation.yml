@@ -3,7 +3,6 @@ name: PR Validation
 on:
   pull_request:
     branches:
-      - master
       - fase-3
     types: [opened, synchronize, reopened]
 

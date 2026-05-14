@@ -3,8 +3,6 @@ name: CI/CD - Build, Test and Deploy
 on:
   push:
     branches: [master, fase-3]
-  pull_request:
-    branches: [master]
   workflow_dispatch:
 
 env:
