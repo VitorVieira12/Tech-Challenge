@@ -43,7 +43,8 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           mvn sonar:sonar \
-            -Dsonar.projectKey=os-service \
+            -Dsonar.projectKey=VitorVieira12_Tech-Challenge \
+            -Dsonar.organization=vitorvieira12 \
             -Dsonar.host.url=$SONAR_HOST_URL \
             -Dsonar.login=$SONAR_TOKEN \
             -B || echo "SonarQube not configured, skipping"
