@@ -1,17 +1,34 @@
 services:
-  # PostgreSQL Database
+  # ─── RabbitMQ Message Broker ───────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # Management UI: http://localhost:15672 (guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tech-challenge-network
+
+  # ─── PostgreSQL (OS Service) ───────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
-    container_name: tech-challenge-db
+    container_name: os-service-db
     environment:
-      POSTGRES_DB: tech_challenge
+      POSTGRES_DB: os_service
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123456
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./src/main/resources/scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -20,22 +37,68 @@ services:
     networks:
       - tech-challenge-network
 
-  # Spring Boot Application
-  app:
+  # ─── PostgreSQL (Billing Service) ─────────────────────────────────────────
+  postgres-billing:
+    image: postgres:15-alpine
+    container_name: billing-service-db
+    environment:
+      POSTGRES_DB: billing_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-billing-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tech-challenge-network
+
+  # ─── MongoDB (Execution Service) ──────────────────────────────────────────
+  mongodb:
+    image: mongo:7-jammy
+    container_name: execution-service-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: execution_service
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tech-challenge-network
+
+  # ─── OS Service ───────────────────────────────────────────────────────────
+  os-service:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: tech-challenge-app
+    container_name: os-service
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tech_challenge
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/os_service
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
       JWT_EXPIRATION: 86400000
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
     ports:
       - "8080:8080"
     healthcheck:
@@ -50,6 +113,10 @@ services:
 
 volumes:
   postgres-data:
+    driver: local
+  postgres-billing-data:
+    driver: local
+  mongodb-data:
     driver: local
 
 networks:
