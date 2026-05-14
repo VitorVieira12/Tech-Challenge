@@ -27,14 +27,8 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run unit tests
-        run: mvn test -B
-
-      - name: Generate JaCoCo coverage report
-        run: mvn jacoco:report -B
-
-      - name: Check coverage threshold (80%)
-        run: mvn jacoco:check -B
+      - name: Run tests and check coverage (80%)
+        run: mvn verify -B
 
       - name: SonarQube Analysis
         if: github.event_name == 'push'
