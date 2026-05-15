@@ -1,0 +1,118 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: os-service
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: os-service-secrets
+  namespace: os-service
+type: Opaque
+stringData:
+  db-url: "jdbc:postgresql://<RDS_ENDPOINT>:5432/techdb"
+  db-username: "postgres"
+  db-password: "<DB_PASSWORD>"
+  jwt-secret: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
+  rabbitmq-host: "rabbitmq.rabbitmq.svc.cluster.local"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: os-service-config
+  namespace: os-service
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  SERVER_PORT: "8080"
+  RABBITMQ_PORT: "5672"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: os-service
+  namespace: os-service
+  labels:
+    app: os-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: os-service
+  template:
+    metadata:
+      labels:
+        app: os-service
+    spec:
+      containers:
+        - name: os-service
+          image: vitorvieira12/os-service:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: os-service-secrets
+                  key: db-url
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: os-service-secrets
+                  key: db-username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: os-service-secrets
+                  key: db-password
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: os-service-secrets
+                  key: jwt-secret
+            - name: RABBITMQ_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: os-service-secrets
+                  key: rabbitmq-host
+            - name: RABBITMQ_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: os-service-config
+                  key: RABBITMQ_PORT
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: os-service-config
+                  key: SPRING_PROFILES_ACTIVE
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "768Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: os-service
+  namespace: os-service
+spec:
+  selector:
+    app: os-service
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: LoadBalancer
