@@ -27,18 +27,14 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run tests and check coverage (80%)
-        run: mvn verify -B
+      - name: Run unit tests (surefire)
+        run: mvn test -B -Dsurefire.useFile=false
 
-      - name: Print failed test reports
-        if: failure()
-        run: |
-          echo "=== SUREFIRE REPORTS ==="
-          find target/surefire-reports -name "*.txt" 2>/dev/null | head -20 | xargs -I{} sh -c 'echo "--- {} ---"; cat "{}"' || true
-          echo "=== FAILSAFE REPORTS ==="
-          find target/failsafe-reports -name "*.txt" 2>/dev/null | head -20 | xargs -I{} sh -c 'echo "--- {} ---"; cat "{}"' || true
-          echo "=== JACOCO CHECK ==="
-          find target -name "*.exec" 2>/dev/null && echo "JaCoCo exec found" || echo "No JaCoCo exec found"
+      - name: Run integration tests (failsafe)
+        run: mvn failsafe:integration-test failsafe:verify -B
+
+      - name: Check JaCoCo coverage
+        run: mvn jacoco:check -B
 
       - name: SonarQube Analysis
         if: github.event_name == 'push'
