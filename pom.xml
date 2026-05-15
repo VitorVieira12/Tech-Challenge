@@ -133,9 +133,12 @@
 	</dependency>
 
 	<!-- H2 Database for quick unit tests (optional) -->
+	<!-- Pinned to 2.1.214: Hibernate 6.x only uses INSERT RETURNING for H2 >= 2.2.220.
+	     With 2.1.214, Hibernate falls back to standard JDBC getGeneratedKeys(). -->
 	<dependency>
 		<groupId>com.h2database</groupId>
 		<artifactId>h2</artifactId>
+		<version>2.1.214</version>
 		<scope>test</scope>
 	</dependency>
 
