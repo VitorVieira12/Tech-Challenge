@@ -7,8 +7,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    database-platform: com.techchallenge.config.H2TestDialect
+    database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        temp.use_jdbc_metadata_defaults: false
   rabbitmq:
     host: localhost
     port: 5672
