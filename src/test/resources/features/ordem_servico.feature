@@ -5,7 +5,7 @@ Funcionalidade: Ciclo de vida de uma Ordem de Serviço
   Para garantir que o fluxo de Saga funcione corretamente
 
   Contexto:
-    Dado que existe um cliente com CPF "12345678901" e nome "João Silva"
+    Dado que existe um cliente com CPF "11144477735" e nome "João Silva"
     E que existe um serviço com ID 1 e descrição "Troca de óleo" e preço 150.00
 
   Cenário: Abertura de OS coloca status em EM_DIAGNOSTICO e publica evento
