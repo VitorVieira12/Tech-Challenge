@@ -10,7 +10,7 @@ metadata:
   namespace: execution-service
 type: Opaque
 stringData:
-  mongodb-uri: "mongodb+srv://<USER>:<PASSWORD>@<CLUSTER>.mongodb.net/execution_db?retryWrites=true&w=majority"
+  mongodb-uri: "mongodb+srv://<USER>:<PASSWORD>@<CLUSTER>.mongodb.net/execution_service?retryWrites=true&w=majority"
   rabbitmq-host: "rabbitmq.rabbitmq.svc.cluster.local"
 ---
 apiVersion: v1
@@ -51,6 +51,8 @@ spec:
                 secretKeyRef:
                   name: execution-service-secrets
                   key: mongodb-uri
+            - name: MONGODB_DATABASE
+              value: "execution_service"
             - name: RABBITMQ_HOST
               valueFrom:
                 secretKeyRef:
