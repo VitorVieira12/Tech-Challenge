@@ -27,14 +27,8 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Run unit tests (surefire)
-        run: mvn test -B -Dsurefire.useFile=false
-
-      - name: Run integration tests (failsafe)
-        run: mvn failsafe:integration-test failsafe:verify -B
-
-      - name: Check JaCoCo coverage
-        run: mvn jacoco:check -B
+      - name: Run tests and check coverage
+        run: mvn verify -B -Dsurefire.useFile=false -Dfailsafe.useFile=false
 
       - name: SonarQube Analysis
         if: github.event_name == 'push'
