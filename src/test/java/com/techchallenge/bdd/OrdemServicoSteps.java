@@ -4,8 +4,11 @@ import com.techchallenge.domain.model.*;
 import com.techchallenge.domain.repository.ClienteRepository;
 import com.techchallenge.domain.repository.OrdemDeServicoRepository;
 import com.techchallenge.domain.repository.ServicoRepository;
+import com.techchallenge.domain.repository.VeiculoRepository;
+import com.techchallenge.domain.valueobject.AnoVeiculo;
 import com.techchallenge.domain.valueobject.Contato;
 import com.techchallenge.domain.valueobject.CpfCnpj;
+import com.techchallenge.domain.valueobject.Placa;
 import com.techchallenge.domain.valueobject.ValorMonetario;
 import com.techchallenge.messaging.consumer.BillingEventConsumer;
 import com.techchallenge.messaging.consumer.ExecucaoEventConsumer;
@@ -27,6 +30,7 @@ public class OrdemServicoSteps {
     @Autowired private ClienteRepository clienteRepository;
     @Autowired private ServicoRepository servicoRepository;
     @Autowired private OrdemDeServicoRepository ordemDeServicoRepository;
+    @Autowired private VeiculoRepository veiculoRepository;
     @Autowired private BillingEventConsumer billingEventConsumer;
     @Autowired private ExecucaoEventConsumer execucaoEventConsumer;
 
@@ -36,6 +40,7 @@ public class OrdemServicoSteps {
     @Before
     public void limpar() {
         ordemDeServicoRepository.deleteAll();
+        veiculoRepository.deleteAll();
         eventoCriado = false;
         ultimaOs = null;
     }
@@ -68,8 +73,19 @@ public class OrdemServicoSteps {
                 .findFirst().orElseThrow();
         Servico servico = servicoRepository.findById(servicoId).orElseThrow();
 
+        Veiculo veiculo = veiculoRepository.findByPlacaValor(placa).orElseGet(() -> {
+            Veiculo v = new Veiculo();
+            v.setPlaca(new Placa(placa));
+            v.setMarca("Toyota");
+            v.setModelo("Corolla");
+            v.setAno(new AnoVeiculo(2020));
+            v.setCliente(cliente);
+            return veiculoRepository.save(v);
+        });
+
         OrdemDeServico os = new OrdemDeServico();
         os.setCliente(cliente);
+        os.setVeiculo(veiculo);
         os.setStatus(StatusOrdemServico.EM_DIAGNOSTICO);
         os.setValorTotalOrcamento(servico.getPreco());
 
@@ -93,8 +109,19 @@ public class OrdemServicoSteps {
         Cliente cliente = clienteRepository.findAll().stream()
                 .findFirst().orElseThrow();
 
+        Veiculo veiculo = veiculoRepository.findAll().stream().findFirst().orElseGet(() -> {
+            Veiculo v = new Veiculo();
+            v.setPlaca(new Placa("TST0001"));
+            v.setMarca("Generic");
+            v.setModelo("Model");
+            v.setAno(new AnoVeiculo(2020));
+            v.setCliente(cliente);
+            return veiculoRepository.save(v);
+        });
+
         OrdemDeServico os = new OrdemDeServico();
         os.setCliente(cliente);
+        os.setVeiculo(veiculo);
         os.setStatus(StatusOrdemServico.valueOf(status));
         os.setValorTotalOrcamento(new ValorMonetario(BigDecimal.valueOf(100)));
         ultimaOs = ordemDeServicoRepository.save(os);
