@@ -76,7 +76,7 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(input)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists())
-                .andExpect(jsonPath("$.status").value("AGUARDANDO_APROVACAO"))
+                .andExpect(jsonPath("$.status").value("EM_DIAGNOSTICO"))
                 .andExpect(jsonPath("$.clienteNome").value("João Silva"))
                 .andExpect(jsonPath("$.veiculoPlaca").value("ABC1234"));
     }
@@ -110,7 +110,7 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
                         .param("cpfCnpj", "11144477735"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(createdOS.getId()))
-                .andExpect(jsonPath("$.status").value("AGUARDANDO_APROVACAO"))
+                .andExpect(jsonPath("$.status").value("EM_DIAGNOSTICO"))
                 .andExpect(jsonPath("$.veiculoPlaca").value("ABC1234"));
     }
 
@@ -144,6 +144,16 @@ class OrdemDeServicoControllerIntegrationTest extends BaseIntegrationTest {
 
         String createResponse = createResult.getResponse().getContentAsString();
         OrdemDeServicoResponseDTO createdOS = objectMapper.readValue(createResponse, OrdemDeServicoResponseDTO.class);
+
+        // Saga flow: EM_DIAGNOSTICO → AGUARDANDO_APROVACAO → EM_EXECUCAO
+        StatusUpdateDTO toAguardando = new StatusUpdateDTO();
+        toAguardando.setNovoStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        toAguardando.setObservacao("Orçamento gerado pelo billing");
+
+        mockMvc.perform(patch("/api/ordens-servico/" + createdOS.getId() + "/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(toAguardando)))
+                .andExpect(status().isOk());
 
         StatusUpdateDTO statusUpdate = new StatusUpdateDTO();
         statusUpdate.setNovoStatus(StatusOrdemServico.EM_EXECUCAO);
