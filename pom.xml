@@ -267,17 +267,21 @@
 							<goal>check</goal>
 						</goals>
 						<configuration>
-							<excludes>
-								<!-- Clean architecture layer - not exercised by current integration tests -->
-								<exclude>com/techchallenge/core/**</exclude>
-								<exclude>com/techchallenge/adapters/**</exclude>
-								<exclude>com/techchallenge/infrastructure/**</exclude>
-								<!-- Presentation/infrastructure concerns -->
-								<exclude>com/techchallenge/controller/**</exclude>
-								<exclude>com/techchallenge/security/**</exclude>
-								<exclude>com/techchallenge/config/**</exclude>
-								<exclude>com/techchallenge/TechChallengeApplication</exclude>
-							</excludes>
+						<excludes>
+							<!-- Clean architecture layer - not exercised by current integration tests -->
+							<exclude>com/techchallenge/core/**</exclude>
+							<exclude>com/techchallenge/adapters/**</exclude>
+							<exclude>com/techchallenge/infrastructure/**</exclude>
+							<!-- Presentation/infrastructure concerns -->
+							<exclude>com/techchallenge/controller/**</exclude>
+							<exclude>com/techchallenge/security/**</exclude>
+							<exclude>com/techchallenge/config/**</exclude>
+							<exclude>com/techchallenge/TechChallengeApplication</exclude>
+							<!-- Messaging infrastructure - publisher always mocked in tests -->
+							<exclude>com/techchallenge/messaging/publisher/**</exclude>
+							<exclude>com/techchallenge/messaging/config/**</exclude>
+							<exclude>com/techchallenge/messaging/event/**</exclude>
+						</excludes>
 							<rules>
 								<rule>
 									<element>BUNDLE</element>
@@ -310,6 +314,8 @@
 										<exclude>*.security.*</exclude>
 										<exclude>*TechChallengeApplication</exclude>
 										<exclude>*.model.Servico</exclude>
+										<exclude>*.messaging.publisher.*</exclude>
+										<exclude>*.messaging.event.*</exclude>
 									</excludes>
 								</rule>
 							</rules>
