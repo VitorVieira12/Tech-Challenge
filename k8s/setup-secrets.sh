@@ -3,6 +3,7 @@
 # Replace the values below with your actual credentials
 
 RDS_ENDPOINT="tech-challenge-db.cgxmk6mmaeyg.us-east-1.rds.amazonaws.com"
+# Already configured - just update DB_PASSWORD, MONGODB_URI and MERCADOPAGO_TOKEN below
 DB_PASSWORD="<YOUR_DB_PASSWORD>"
 MONGODB_URI="<YOUR_MONGODB_URI>"
 MERCADOPAGO_TOKEN="<YOUR_MERCADOPAGO_TOKEN>"

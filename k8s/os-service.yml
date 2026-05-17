@@ -10,7 +10,7 @@ metadata:
   namespace: os-service
 type: Opaque
 stringData:
-  db-url: "jdbc:postgresql://<RDS_ENDPOINT>:5432/techdb"
+  db-url: "jdbc:postgresql://tech-challenge-db.cgxmk6mmaeyg.us-east-1.rds.amazonaws.com:5432/techdb"
   db-username: "postgres"
   db-password: "<DB_PASSWORD>"
   jwt-secret: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"

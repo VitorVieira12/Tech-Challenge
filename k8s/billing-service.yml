@@ -10,7 +10,7 @@ metadata:
   namespace: billing-service
 type: Opaque
 stringData:
-  db-url: "jdbc:postgresql://<RDS_ENDPOINT>:5432/billing_service"
+  db-url: "jdbc:postgresql://tech-challenge-db.cgxmk6mmaeyg.us-east-1.rds.amazonaws.com:5432/billing_service"
   db-username: "postgres"
   db-password: "<DB_PASSWORD>"
   rabbitmq-host: "rabbitmq.rabbitmq.svc.cluster.local"
