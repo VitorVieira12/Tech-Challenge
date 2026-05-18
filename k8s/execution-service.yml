@@ -48,6 +48,8 @@ spec:
           env:
             - name: JAVA_OPTS
               value: "-Xmx220m -Xms128m -XX:+UseContainerSupport"
+            - name: NEW_RELIC_AGENT_ENABLED
+              value: "false"
             - name: MONGODB_URI
               valueFrom:
                 secretKeyRef:

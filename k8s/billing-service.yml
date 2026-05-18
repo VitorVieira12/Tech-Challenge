@@ -51,6 +51,8 @@ spec:
           env:
             - name: JAVA_OPTS
               value: "-Xmx220m -Xms128m -XX:+UseContainerSupport"
+            - name: NEW_RELIC_AGENT_ENABLED
+              value: "false"
             - name: SPRING_DATASOURCE_URL
               valueFrom:
                 secretKeyRef:
