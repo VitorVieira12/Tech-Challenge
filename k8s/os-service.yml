@@ -49,6 +49,8 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: JAVA_OPTS
+              value: "-Xmx220m -Xms128m -XX:+UseContainerSupport"
             - name: DB_URL
               valueFrom:
                 secretKeyRef:
@@ -86,22 +88,23 @@ spec:
                   key: SPRING_PROFILES_ACTIVE
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
+              memory: "256Mi"
+              cpu: "100m"
             limits:
-              memory: "768Mi"
-              cpu: "500m"
+              memory: "380Mi"
+              cpu: "300m"
           readinessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 40
+            initialDelaySeconds: 90
             periodSeconds: 15
+            failureThreshold: 6
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 60
+            initialDelaySeconds: 120
             periodSeconds: 30
 ---
 apiVersion: v1
