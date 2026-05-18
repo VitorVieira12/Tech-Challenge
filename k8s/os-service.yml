@@ -4,19 +4,6 @@ metadata:
   name: os-service
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  name: os-service-secrets
-  namespace: os-service
-type: Opaque
-stringData:
-  db-url: "jdbc:postgresql://tech-challenge-db.cgxmk6mmaeyg.us-east-1.rds.amazonaws.com:5432/techdb"
-  db-username: "postgres"
-  db-password: "<DB_PASSWORD>"
-  jwt-secret: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970"
-  rabbitmq-host: "rabbitmq.rabbitmq.svc.cluster.local"
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: os-service-config

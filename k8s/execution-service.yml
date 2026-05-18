@@ -4,16 +4,6 @@ metadata:
   name: execution-service
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  name: execution-service-secrets
-  namespace: execution-service
-type: Opaque
-stringData:
-  mongodb-uri: "mongodb+srv://<USER>:<PASSWORD>@<CLUSTER>.mongodb.net/execution_service?retryWrites=true&w=majority"
-  rabbitmq-host: "rabbitmq.rabbitmq.svc.cluster.local"
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: execution-service-config

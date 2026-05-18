@@ -4,19 +4,6 @@ metadata:
   name: billing-service
 ---
 apiVersion: v1
-kind: Secret
-metadata:
-  name: billing-service-secrets
-  namespace: billing-service
-type: Opaque
-stringData:
-  db-url: "jdbc:postgresql://tech-challenge-db.cgxmk6mmaeyg.us-east-1.rds.amazonaws.com:5432/billing_service"
-  db-username: "postgres"
-  db-password: "<DB_PASSWORD>"
-  rabbitmq-host: "rabbitmq.rabbitmq.svc.cluster.local"
-  mercadopago-token: "<MERCADOPAGO_ACCESS_TOKEN>"
----
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: billing-service-config
