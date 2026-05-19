@@ -18,6 +18,8 @@ import com.techchallenge.domain.valueobject.AnoVeiculo;
 import com.techchallenge.domain.valueobject.CpfCnpj;
 import com.techchallenge.domain.valueobject.Placa;
 import com.techchallenge.domain.valueobject.ValorMonetario;
+import com.techchallenge.messaging.event.OsCriadaEvent;
+import com.techchallenge.messaging.publisher.OsEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,6 +44,7 @@ public class OrdemDeServicoService {
     private final VeiculoRepository veiculoRepository;
     private final ServicoRepository servicoRepository;
     private final PecaInsumoRepository pecaInsumoRepository;
+    private final OsEventPublisher osEventPublisher;
 
     @Transactional
     public OrdemDeServicoResponseDTO criarOS(OrdemDeServicoInputDTO dto) {
@@ -104,14 +107,14 @@ public class OrdemDeServicoService {
 
         os.setValorTotalOrcamento(valorTotal);
 
+        os.setStatus(StatusOrdemServico.EM_DIAGNOSTICO);
         OrdemDeServico osSalva = ordemDeServicoRepository.save(os);
-        log.info("OS criada com sucesso. ID: {}, Valor Total: {}", osSalva.getId(), valorTotal);
-
-        osSalva.setStatus(StatusOrdemServico.AGUARDANDO_APROVACAO);
-        osSalva = ordemDeServicoRepository.save(osSalva);
-        log.info("OS {} avançada automaticamente para AGUARDANDO_APROVACAO", osSalva.getId());
+        log.info("OS criada com sucesso. ID: {}, Valor Total: {}, Status: EM_DIAGNOSTICO", osSalva.getId(), valorTotal);
 
         logOrcamento(osSalva);
+
+        OsCriadaEvent event = buildOsCriadaEvent(osSalva);
+        osEventPublisher.publicarOsCriada(event);
 
         return OrdemDeServicoResponseDTO.fromEntity(osSalva);
     }
@@ -191,6 +194,39 @@ public class OrdemDeServicoService {
         return pecas;
     }
 
+    private OsCriadaEvent buildOsCriadaEvent(OrdemDeServico os) {
+        var servicos = os.getItensServico().stream()
+                .map(i -> new OsCriadaEvent.ItemServicoEvent(
+                        i.getServico().getId(),
+                        i.getServico().getDescricao(),
+                        i.getQuantidade(),
+                        i.getPrecoUnitario().getValor(),
+                        i.getSubtotal().getValor()))
+                .toList();
+
+        var pecas = os.getItensPeca().stream()
+                .map(i -> new OsCriadaEvent.ItemPecaEvent(
+                        i.getPecaInsumo().getId(),
+                        i.getPecaInsumo().getNome(),
+                        i.getQuantidade(),
+                        i.getPrecoUnitario().getValor(),
+                        i.getSubtotal().getValor()))
+                .toList();
+
+        return new OsCriadaEvent(
+                os.getId(),
+                os.getCliente().getNome(),
+                os.getCliente().getCpfCnpj().getValor(),
+                os.getCliente().getContato().getValor(),
+                os.getVeiculo().getPlaca().getValor(),
+                os.getVeiculo().getMarca() + " " + os.getVeiculo().getModelo(),
+                os.getValorTotalOrcamento().getValor(),
+                os.getDataCriacao(),
+                servicos,
+                pecas,
+                os.getObservacoes());
+    }
+
     private void logOrcamento(OrdemDeServico os) {
         log.info("=================================================");
         log.info("OS registrada com sucesso");
@@ -267,6 +303,7 @@ public class OrdemDeServicoService {
             case RECEBIDA:
             case EM_DIAGNOSTICO:
             case AGUARDANDO_APROVACAO:
+            case CANCELADA:
                 break;
         }
 
@@ -284,28 +321,18 @@ public class OrdemDeServicoService {
     }
 
     private void validarTransicaoStatus(StatusOrdemServico statusAtual, StatusOrdemServico novoStatus) {
-        Map<StatusOrdemServico, Set<StatusOrdemServico>> transicoesValidas = Map.of(
-            StatusOrdemServico.RECEBIDA, EnumSet.of(
-                StatusOrdemServico.EM_DIAGNOSTICO,
-                StatusOrdemServico.AGUARDANDO_APROVACAO
-            ),
-            StatusOrdemServico.EM_DIAGNOSTICO, EnumSet.of(
-                StatusOrdemServico.AGUARDANDO_APROVACAO,
-                StatusOrdemServico.RECEBIDA
-            ),
-            StatusOrdemServico.AGUARDANDO_APROVACAO, EnumSet.of(
-                StatusOrdemServico.EM_EXECUCAO,
-                StatusOrdemServico.RECEBIDA
-            ),
-            StatusOrdemServico.EM_EXECUCAO, EnumSet.of(
-                StatusOrdemServico.FINALIZADA,
-                StatusOrdemServico.EM_DIAGNOSTICO
-            ),
-            StatusOrdemServico.FINALIZADA, EnumSet.of(
-                StatusOrdemServico.ENTREGUE
-            ),
-            StatusOrdemServico.ENTREGUE, EnumSet.noneOf(StatusOrdemServico.class)
-        );
+        Map<StatusOrdemServico, Set<StatusOrdemServico>> transicoesValidas = new java.util.HashMap<>();
+        transicoesValidas.put(StatusOrdemServico.RECEBIDA, EnumSet.of(
+                StatusOrdemServico.EM_DIAGNOSTICO, StatusOrdemServico.AGUARDANDO_APROVACAO));
+        transicoesValidas.put(StatusOrdemServico.EM_DIAGNOSTICO, EnumSet.of(
+                StatusOrdemServico.AGUARDANDO_APROVACAO, StatusOrdemServico.CANCELADA));
+        transicoesValidas.put(StatusOrdemServico.AGUARDANDO_APROVACAO, EnumSet.of(
+                StatusOrdemServico.EM_EXECUCAO, StatusOrdemServico.CANCELADA));
+        transicoesValidas.put(StatusOrdemServico.EM_EXECUCAO, EnumSet.of(
+                StatusOrdemServico.FINALIZADA, StatusOrdemServico.EM_DIAGNOSTICO));
+        transicoesValidas.put(StatusOrdemServico.FINALIZADA, EnumSet.of(StatusOrdemServico.ENTREGUE));
+        transicoesValidas.put(StatusOrdemServico.ENTREGUE, EnumSet.noneOf(StatusOrdemServico.class));
+        transicoesValidas.put(StatusOrdemServico.CANCELADA, EnumSet.noneOf(StatusOrdemServico.class));
 
         if (statusAtual == novoStatus) {
             log.warn("OS já está no status {}", novoStatus);

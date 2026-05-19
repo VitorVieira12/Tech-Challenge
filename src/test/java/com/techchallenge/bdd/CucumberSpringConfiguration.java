@@ -1,21 +1,16 @@
-package com.techchallenge;
+package com.techchallenge.bdd;
 
 import com.techchallenge.messaging.publisher.OsEventPublisher;
-import org.junit.jupiter.api.Test;
+import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
+@CucumberContextConfiguration
 @SpringBootTest
 @ActiveProfiles("test")
-class TechChallengeApplicationTests {
+public class CucumberSpringConfiguration {
 
-	@MockBean
-	OsEventPublisher osEventPublisher;
-
-	@Test
-	void contextLoads() {
-		// Test that the application context loads successfully
-	}
-
+    @MockBean
+    OsEventPublisher osEventPublisher;
 }

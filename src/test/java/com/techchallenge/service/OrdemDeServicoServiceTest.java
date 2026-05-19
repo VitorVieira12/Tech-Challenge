@@ -7,6 +7,7 @@ import com.techchallenge.domain.model.*;
 import com.techchallenge.domain.repository.*;
 import com.techchallenge.domain.service.OrdemDeServicoService;
 import com.techchallenge.domain.valueobject.*;
+import com.techchallenge.messaging.publisher.OsEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,18 +30,21 @@ class OrdemDeServicoServiceTest {
 
     @Mock
     private OrdemDeServicoRepository ordemDeServicoRepository;
-    
+
     @Mock
     private ClienteRepository clienteRepository;
-    
+
     @Mock
     private VeiculoRepository veiculoRepository;
-    
+
     @Mock
     private ServicoRepository servicoRepository;
-    
+
     @Mock
     private PecaInsumoRepository pecaInsumoRepository;
+
+    @Mock
+    private OsEventPublisher osEventPublisher;
 
     @InjectMocks
     private OrdemDeServicoService ordemDeServicoService;
@@ -97,15 +101,16 @@ class OrdemDeServicoServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO);
+        assertThat(result.getStatus()).isEqualTo(StatusOrdemServico.EM_DIAGNOSTICO);
         assertThat(result.getValorTotalOrcamento()).isEqualByComparingTo(new BigDecimal("241.80")); // 150 + (45.90 * 2)
-        
+
         verify(clienteRepository).findByCpfCnpjValor("11144477735");
         verify(veiculoRepository).findByPlacaValor("ABC1234");
         verify(servicoRepository).findById(1L);
         verify(pecaInsumoRepository).findById(1L);
-        verify(ordemDeServicoRepository, times(2)).save(any(OrdemDeServico.class)); // primeira save (RECEBIDA), segunda (AGUARDANDO_APROVACAO)
+        verify(ordemDeServicoRepository, times(1)).save(any(OrdemDeServico.class));
         verify(pecaInsumoRepository).save(peca);
+        verify(osEventPublisher).publicarOsCriada(any());
 
         assertThat(peca.getQuantidadeEstoque()).isEqualTo(98); // 100 - 2
     }
