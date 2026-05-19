@@ -73,5 +73,67 @@ class PlacaTest {
                 .isInstanceOf(DomainValidationException.class)
                 .hasMessage("Placa deve seguir o formato brasileiro: ABC1234 (antigo) ou ABC1D23 (Mercosul)");
     }
+
+    @Test
+    @DisplayName("Deve lançar exceção para placa só com espaços")
+    void deveLancarExcecaoParaPlacaSoComEspacos() {
+        assertThatThrownBy(() -> new Placa("   "))
+                .isInstanceOf(DomainValidationException.class)
+                .hasMessageContaining("não pode ser nula ou vazia");
+    }
+
+    @Test
+    @DisplayName("isFormatoAntigo deve identificar corretamente placa ABC1234")
+    void deveIdentificarFormatoAntigo() {
+        Placa placa = new Placa("ABC1234");
+
+        assertThat(placa.isFormatoAntigo()).isTrue();
+        assertThat(placa.isMercosul()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isMercosul deve identificar corretamente placa ABC1D23")
+    void deveIdentificarFormatoMercosul() {
+        Placa placa = new Placa("ABC1D23");
+
+        assertThat(placa.isMercosul()).isTrue();
+        assertThat(placa.isFormatoAntigo()).isFalse();
+    }
+
+    @Test
+    @DisplayName("getFormatado deve retornar placa formatada com hífen (antigo)")
+    void getFormatadoDeveAdicionarHifenAntigo() {
+        Placa placa = new Placa("ABC1234");
+
+        assertThat(placa.getFormatado()).isEqualTo("ABC-1234");
+    }
+
+    @Test
+    @DisplayName("getFormatado deve retornar placa formatada com hífen (Mercosul)")
+    void getFormatadoDeveAdicionarHifenMercosul() {
+        Placa placa = new Placa("ABC1D23");
+
+        assertThat(placa.getFormatado()).isEqualTo("ABC-1D23");
+    }
+
+    @Test
+    @DisplayName("toString deve retornar o valor da placa")
+    void toStringDeveRetornarValor() {
+        Placa placa = new Placa("ABC1234");
+
+        assertThat(placa.toString()).isEqualTo("ABC1234");
+    }
+
+    @Test
+    @DisplayName("equals e hashCode devem funcionar")
+    void equalsEHashCodeDevemFuncionar() {
+        Placa a = new Placa("ABC1234");
+        Placa b = new Placa("ABC1234");
+        Placa c = new Placa("XYZ9876");
+
+        assertThat(a).isEqualTo(b);
+        assertThat(a).isNotEqualTo(c);
+        assertThat(a.hashCode()).isEqualTo(b.hashCode());
+    }
 }
 

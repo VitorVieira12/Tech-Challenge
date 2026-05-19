@@ -119,6 +119,7 @@ public class EmailNotificationService {
             case EM_EXECUCAO -> "Serviços iniciados no seu veículo";
             case FINALIZADA -> "Serviços finalizados - Veículo pronto";
             case ENTREGUE -> "Veículo entregue - Obrigado pela preferência";
+            case CANCELADA -> "Ordem de Serviço Cancelada";
         };
         
         return String.format("🔧 %s - OS #%d", assunto, os.getId());
@@ -242,6 +243,7 @@ public class EmailNotificationService {
             case EM_EXECUCAO -> "Em Execução";
             case FINALIZADA -> "Finalizada";
             case ENTREGUE -> "Entregue";
+            case CANCELADA -> "Cancelada";
         };
     }
 
@@ -256,6 +258,7 @@ public class EmailNotificationService {
             case EM_EXECUCAO -> "#007bff";        // Azul
             case FINALIZADA -> "#28a745";         // Verde
             case ENTREGUE -> "#20c997";           // Verde Água
+            case CANCELADA -> "#dc3545";          // Vermelho
         };
     }
 }

@@ -1,731 +1,312 @@
-# 🚗 Tech Challenge - Sistema de Gestão de Oficina Mecânica
+# Tech Challenge — Fase 4 | OS Service (Ordem de Serviço)
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5.svg)](https://kubernetes.io/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.13-FF6600.svg)](https://www.rabbitmq.com/)
+[![Coverage](https://img.shields.io/badge/JaCoCo-%E2%89%A580%25-success.svg)](#-testes-e-qualidade)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF.svg)](.github/workflows/ci-cd-os-service.yml)
 
-API RESTful para gerenciamento completo de oficina mecânica, desenvolvida com Spring Boot 3, JWT Authentication, documentação Swagger/OpenAPI e containerização Docker.
+Microsserviço responsável pelo ciclo de vida das **Ordens de Serviço** de uma oficina mecânica. Faz parte da arquitetura distribuída do Tech Challenge — FIAP Pós Tech (turma 13SOAT) — Fase 4.
 
----
-
-## 📋 Índice
-
-- [Sobre o Projeto](#-sobre-o-projeto)
-- [Tecnologias](#-tecnologias)
-- [Funcionalidades](#-funcionalidades)
-- [Pré-requisitos](#-pré-requisitos)
-- [Instalação e Execução](#-instalação-e-execução)
-- [Documentação da API](#-documentação-da-api)
-- [Autenticação](#-autenticação)
-- [Testes](#-testes)
-- [Arquitetura](#-arquitetura)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [Endpoints Principais](#-endpoints-principais)
-- [Troubleshooting](#-troubleshooting)
-- [Documentação Adicional](#-documentação-adicional)
+> **Branch ativa:** `fase-4` (mergeada em `main` para entrega).
 
 ---
 
-## 🎯 Sobre o Projeto
+## Mapa da Fase 4 — Repositórios
 
-O **Tech Challenge** é uma aplicação completa de gerenciamento de oficina mecânica que permite:
+| Repositório | Serviço | Linguagem / Banco | Pipeline |
+|---|---|---|---|
+| [**Tech-Challenge**](https://github.com/VitorVieira12/Tech-Challenge) (este) | OS Service | Java 21 / PostgreSQL (RDS) | [![OS](https://github.com/VitorVieira12/Tech-Challenge/actions/workflows/ci-cd-os-service.yml/badge.svg)](https://github.com/VitorVieira12/Tech-Challenge/actions/workflows/ci-cd-os-service.yml) |
+| [**tech-challenge-billing-service**](https://github.com/VitorVieira12/tech-challenge-billing-service) | Billing Service | Java 21 / PostgreSQL (RDS) | [![Billing](https://github.com/VitorVieira12/tech-challenge-billing-service/actions/workflows/ci-cd-billing-service.yml/badge.svg)](https://github.com/VitorVieira12/tech-challenge-billing-service/actions) |
+| [**tech-challenge-execution-service**](https://github.com/VitorVieira12/tech-challenge-execution-service) | Execution Service | Java 21 / MongoDB (Atlas) | [![Execution](https://github.com/VitorVieira12/tech-challenge-execution-service/actions/workflows/ci-cd-execution-service.yml/badge.svg)](https://github.com/VitorVieira12/tech-challenge-execution-service/actions) |
+| [tech-challenge-infra-k8s](https://github.com/VitorVieira12/tech-challenge-infra-k8s) | Infra Kubernetes (EKS) | Terraform | — |
+| [tech-challenge-infra-db](https://github.com/VitorVieira12/tech-challenge-infra-db) | Infra RDS | Terraform | — |
+| [tech-challenge-lambda](https://github.com/VitorVieira12/tech-challenge-lambda) | Lambda Autenticação CPF/CNPJ | Java + SAM | — |
 
-- ✅ Gestão completa de **Clientes**, **Veículos**, **Peças** e **Serviços**
-- ✅ Criação e acompanhamento de **Ordens de Serviço** (OS)
-- ✅ **Controle de estoque** de peças com validação automática
-- ✅ **Gestão de status** de OS com validação de transições
-- ✅ **Consulta pública** para clientes acompanharem suas OSs
-- ✅ **Monitoramento** de tempo médio de execução
-- ✅ **Autenticação JWT** para endpoints administrativos
-- ✅ **Documentação interativa** com Swagger/OpenAPI
-- ✅ **Containerização** com Docker e Docker Compose
-- ✅ **Deploy em Kubernetes** com Horizontal Pod Autoscaler (HPA)
-- ✅ **Infraestrutura como Código** com Terraform (AWS)
+Documento completo da arquitetura: [`docs/ARQUITETURA_FASE4.md`](docs/ARQUITETURA_FASE4.md).
 
 ---
 
-## 🚀 Tecnologias
+## Visão Geral da Arquitetura
 
-### Backend
-- **Java 21** - Linguagem de programação
-- **Spring Boot 3.5.6** - Framework principal
-- **Spring Security** - Segurança e autenticação
-- **JWT (JSON Web Tokens)** - Autenticação stateless
-- **Spring Data JPA** - Persistência de dados
-- **PostgreSQL 15** - Banco de dados relacional
-- **Hibernate** - ORM
-- **Bean Validation** - Validação de dados
-- **Lombok** - Redução de boilerplate
+```mermaid
+graph TB
+    Client[Cliente / App]
 
-### Documentação
-- **SpringDoc OpenAPI** - Documentação automática da API
-- **Swagger UI** - Interface interativa para testes
+    subgraph Auth["Autenticação (Fase 3)"]
+        APIGW[API Gateway HTTP v2]
+        Lambda[Lambda Auth - JWT]
+    end
 
-### Testes
-- **JUnit 5** - Framework de testes
-- **Mockito** - Mocks para testes unitários
-- **Testcontainers** - Testes de integração com PostgreSQL real
-- **JaCoCo** - Cobertura de código (target: 80%)
-- **Spring Boot Test** - Testes de integração
+    subgraph EKS["EKS — Microsserviços"]
+        OS[OS Service<br/>Spring Boot :8080]
+        Billing[Billing Service<br/>Spring Boot :8081]
+        Exec[Execution Service<br/>Spring Boot :8082]
+    end
 
-### DevOps & Cloud
-- **Docker** - Containerização
-- **Docker Compose** - Orquestração local
-- **Kubernetes** - Orquestração em produção
-- **Terraform** - Infraestrutura como código (AWS EKS)
-- **Maven** - Gerenciamento de dependências e build
+    MQ[(RabbitMQ<br/>Amazon MQ)]
+    PGOS[(PostgreSQL<br/>os_service)]
+    PGBILL[(PostgreSQL<br/>billing_service)]
+    MONGO[(MongoDB<br/>execution_service)]
+    NR[New Relic]
+
+    Client -->|POST /auth| APIGW --> Lambda --> Client
+    Client -->|Bearer JWT| OS & Billing & Exec
+
+    OS <-->|pub/sub| MQ
+    Billing <-->|pub/sub| MQ
+    Exec <-->|pub/sub| MQ
+
+    OS --> PGOS
+    Billing --> PGBILL
+    Exec --> MONGO
+    OS & Billing & Exec --> NR
+```
+
+### Justificativa da Divisão em Microsserviços
+
+| Serviço | Por que é um serviço próprio |
+|---|---|
+| **OS Service** | Núcleo do domínio — proprietário da entidade `OrdemDeServico` e do estado canônico do ciclo de vida. Reage a eventos dos outros serviços para atualizar status. |
+| **Billing Service** | Bounded context financeiro. Cobra concerns próprios (orçamentos, pagamentos, integração com Mercado Pago) que tipicamente seguem cadência regulatória/contábil diferente do operacional da oficina. |
+| **Execution Service** | Fila de execução do chão de oficina. Padrão de leitura/escrita diferente (alto volume de updates de status incrementais, histórico evolutivo de etapas) → encaixe natural com banco **NoSQL** (schema flexível). |
+
+### Bancos de Dados (SQL + NoSQL — requisito atendido)
+
+| Serviço | Banco | Tipo | Justificativa |
+|---|---|---|---|
+| OS Service | PostgreSQL 15 (RDS) | **SQL** | Relacionamentos fortes entre OS, cliente, veículo, serviços e peças exigem ACID e foreign keys. |
+| Billing Service | PostgreSQL 15 (RDS) | **SQL** | Dados financeiros (orçamentos/pagamentos) precisam de garantias ACID e auditabilidade. |
+| Execution Service | MongoDB 7 (Atlas) | **NoSQL** | Documentos de execução com schema flexível (etapas, técnico, fotos, anotações). Sem necessidade de JOIN. |
+
+**Regra de ouro respeitada:** nenhum serviço acessa diretamente o banco de outro — toda comunicação cross-service é via RabbitMQ ou REST.
 
 ---
 
-## ✨ Funcionalidades
+## Saga Pattern — Coreografado
 
-### 1. Gestão de Clientes
-- CRUD completo de clientes
-- Validação de CPF/CNPJ com algoritmo oficial
+A coordenação transacional é feita **via eventos no RabbitMQ**, sem orquestrador central.
 
-### 2. Gestão de Veículos
-- CRUD completo de veículos
-- Associação automática com clientes
-- Validação de placas (formato antigo e Mercosul)
+### Justificativa da escolha (Coreografia × Orquestração)
 
-### 3. Gestão de Peças e Insumos
-- CRUD completo de peças
-- **Controle de estoque** em tempo real
-- Ajuste incremental de estoque
-- Validação de disponibilidade
+| Critério | Coreografia (escolhida) | Orquestração |
+|---|---|---|
+| Ponto único de falha | Não existe | Orquestrador é SPOF |
+| Acoplamento | Baixo — serviços conhecem apenas eventos | Alto — orquestrador conhece todos |
+| Complexidade inicial | Média | Alta (precisa do orquestrador) |
+| Rastreabilidade | Exige distributed tracing | Centralizada no orquestrador |
+| Resiliência | Alta — cada serviço sobrevive a quedas dos demais | Depende do orquestrador estar de pé |
 
-### 4. Gestão de Serviços
-- CRUD completo de serviços oferecidos
-- Precificação de serviços
+**Decisão:** coreografia. Para 3 serviços com fluxo bem definido, evita o overhead de manter mais um componente e elimina o SPOF. A rastreabilidade é resolvida pelo New Relic distributed tracing (herdado da Fase 3).
 
-### 5. Ordens de Serviço (OS)
-- **Criação automatizada** com:
-  - Identificação de cliente por CPF/CNPJ
-  - Cadastro automático de veículo (se novo)
-  - Validação de estoque de peças
-  - Geração automática de orçamento
-  - Baixa automática em estoque
+### Fluxo principal
 
-- **Gestão de Status** com validação:
-  - `RECEBIDA` → `EM_DIAGNOSTICO` → `AGUARDANDO_APROVACAO`
-  - `AGUARDANDO_APROVACAO` → `EM_EXECUCAO`
-  - `EM_EXECUCAO` → `FINALIZADA` → `ENTREGUE`
+```mermaid
+sequenceDiagram
+    participant Client
+    participant OS as OS Service
+    participant MQ as RabbitMQ
+    participant Billing as Billing Service
+    participant Exec as Execution Service
 
-- **Aprovação de Orçamento**:
-  - Fluxo de aprovação/recusa pelo cliente
-  - Histórico de observações
+    Client->>OS: POST /api/ordens-servico
+    OS->>OS: status = EM_DIAGNOSTICO
+    OS->>MQ: os.criada
+    OS-->>Client: 201 { osId, status }
 
-- **Consulta Pública**:
-  - Clientes podem consultar suas OSs via CPF/CNPJ
-  - Endpoint público (sem JWT)
-  - Dados seguros (sem informações sensíveis)
+    MQ->>Billing: os.criada
+    Billing->>Billing: gera Orçamento
+    Billing->>MQ: orcamento.gerado
 
-- **Monitoramento**:
-  - Tempo médio de execução
-  - Estatísticas (mín, máx, quantidade)
+    MQ->>OS: orcamento.gerado
+    OS->>OS: status = AGUARDANDO_APROVACAO
 
-### 6. Segurança
-- **Autenticação JWT** em todos os endpoints administrativos
-- Endpoint público para consulta de clientes
-- Credenciais padrão: `admin/admin`
+    Client->>Billing: POST /orcamentos/{id}/aprovar
+    Billing->>MQ: orcamento.aprovado
+
+    MQ->>OS: orcamento.aprovado
+    OS->>OS: status = EM_EXECUCAO
+    MQ->>Exec: orcamento.aprovado
+    Exec->>Exec: entra na fila
+    Exec->>MQ: execucao.iniciada
+
+    Note over Exec: Técnico finaliza o serviço
+
+    Exec->>MQ: execucao.finalizada
+    MQ->>OS: execucao.finalizada
+    OS->>OS: status = FINALIZADA
+```
+
+### Compensações (rollback)
+
+| Evento de falha | Quem publica | Ação compensatória no OS Service |
+|---|---|---|
+| `orcamento.rejeitado` | Billing | OS → `CANCELADA` |
+| `execucao.falhou` | Execution | OS volta para `EM_DIAGNOSTICO` (técnico reavalia) |
+| `pagamento.falhou` | Billing | OS permanece em `AGUARDANDO_APROVACAO` (cliente refaz pagamento) |
 
 ---
 
-## 📦 Pré-requisitos
+## Comunicação Entre Microsserviços
 
-### Opção 1: Executar com Docker (Recomendado)
-- **Docker** 20.10+
-- **Docker Compose** 2.0+
+- **Assíncrona (padrão):** RabbitMQ via Spring AMQP — exchanges `os.events`, `billing.events`, `execution.events`.
+- **Síncrona (REST):** apenas Client → microsserviço; serviços não fazem chamadas REST cross-service.
 
-### Opção 2: Executar localmente
-- **Java 21**
-- **Maven 3.9+**
-- **PostgreSQL 15+**
+### Tabela de Eventos
 
----
-
-## 🎮 Instalação e Execução
-
-### 🐳 Opção 1: Docker Compose (Recomendado)
-
-A maneira mais simples de executar o projeto:
-
-```bash
-# 1. Clone o repositório
-git clone https://github.com/seu-usuario/tech-challenge.git
-cd tech-challenge
-
-# 2. Execute o projeto
-docker-compose up -d
-
-# 3. Aguarde a aplicação iniciar (cerca de 60 segundos)
-# Acompanhe os logs:
-docker-compose logs -f app
-
-# 4. Acesse a aplicação
-# API: http://localhost:8080
-# Swagger UI: http://localhost:8080/swagger-ui.html
-```
-
-**Pronto!** A aplicação e o banco de dados estão rodando.
-
-#### Comandos Úteis Docker
-
-```bash
-# Parar os containers
-docker-compose down
-
-# Parar e remover volumes (limpa banco de dados)
-docker-compose down -v
-
-# Rebuild da aplicação
-docker-compose up --build
-
-# Ver logs
-docker-compose logs -f
-
-# Ver apenas logs da aplicação
-docker-compose logs -f app
-
-# Ver apenas logs do banco
-docker-compose logs -f postgres
-```
+| Evento (routing key) | Exchange | Fila destino | Consumidor |
+|---|---|---|---|
+| `os.criada` | `os.events` | `billing.os.criada` | Billing Service |
+| `orcamento.gerado` | `billing.events` | `os.orcamento.gerado` | OS Service |
+| `orcamento.aprovado` | `billing.events` | `os.orcamento.aprovado`, `exec.orcamento.aprovado` | OS Service, Execution Service |
+| `orcamento.rejeitado` | `billing.events` | `os.orcamento.rejeitado` | OS Service |
+| `pagamento.confirmado` | `billing.events` | `os.pagamento.confirmado` | OS Service |
+| `execucao.iniciada` | `execution.events` | `os.execucao.iniciada` | OS Service |
+| `execucao.finalizada` | `execution.events` | `os.execucao.finalizada` | OS Service |
+| `execucao.falhou` | `execution.events` | `os.execucao.falhou` | OS Service |
 
 ---
 
-### 💻 Opção 2: Executar Localmente
-
-#### 1. Configurar o Banco de Dados
-
-```bash
-# Criar banco de dados PostgreSQL
-createdb tech_challenge
-
-# Ou via psql:
-psql -U postgres
-CREATE DATABASE tech_challenge;
-\q
-```
-
-#### 2. Configurar application.yml
-
-Edite `src/main/resources/application.yml`:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/tech_challenge
-    username: seu_usuario
-    password: sua_senha
-```
-
-#### 3. Executar a Aplicação
-
-```bash
-# Compilar e executar
-./mvnw spring-boot:run
-
-# Ou com Maven instalado:
-mvn spring-boot:run
-```
-
-#### 4. Acessar
-
-- API: `http://localhost:8080`
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-
----
-
-## 📚 Documentação da API
-
-### Swagger UI (Recomendado)
-
-Acesse a documentação interativa em: **http://localhost:8080/swagger-ui.html**
-
-**Funcionalidades do Swagger:**
-- ✅ Visualização de todos os endpoints
-- ✅ Testes interativos
-- ✅ Autenticação JWT integrada
-- ✅ Exemplos de request/response
-
-### OpenAPI JSON
-
-Acesse: **http://localhost:8080/v3/api-docs**
-
-### Documentação Markdown
-
-Consulte também:
-- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Referência completa da API
-- **[API_EXAMPLES.http](API_EXAMPLES.http)** - Exemplos práticos com REST Client
-
----
-
-## 🔐 Autenticação
-
-### 1. Obter Token JWT
-
-```bash
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "username": "admin",
-  "password": "admin"
-}
-```
-
-**Resposta:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "type": "Bearer",
-  "username": "admin",
-  "expiresIn": 86400000
-}
-```
-
-### 2. Usar o Token
-
-#### Via cURL:
-```bash
-curl -H "Authorization: Bearer SEU_TOKEN_AQUI" \
-  http://localhost:8080/api/clientes
-```
-
-#### Via Swagger UI:
-1. Clique no botão **"Authorize"** (🔓)
-2. Cole o token no campo
-3. Clique em **"Authorize"**
-4. Agora todos os endpoints protegidos funcionarão
-
-#### Via Postman/Insomnia:
-1. Aba **Authorization**
-2. Type: **Bearer Token**
-3. Cole o token
-
-### 3. Endpoints Públicos (sem JWT)
-
-- `POST /api/auth/login` - Login
-- `GET /api/ordens-servico/status/{id}?cpfCnpj=xxx` - Consulta pública
-
----
-
-## 🧪 Testes
-
-### Executar Todos os Testes
-
-```bash
-# Com Maven Wrapper
-./mvnw test
-
-# Com Maven instalado
-mvn test
-```
-
-### Executar Testes com Cobertura
-
-```bash
-./mvnw clean test jacoco:report
-```
-
-**Relatório gerado em:** `target/site/jacoco/index.html`
-
-### Tipos de Testes
-
-1. **Testes Unitários** (`src/test/java/.../service/`)
-   - Testa lógica de negócio isoladamente
-   - Usa Mockito para mocks
-   - Rápidos e independentes
-
-2. **Testes de Integração** (`src/test/java/.../integration/`)
-   - Testa fluxo completo da API
-   - Usa Testcontainers (PostgreSQL real)
-   - Testa autenticação JWT
-   - Testa validações end-to-end
-
-3. **Testes de Value Objects** (`src/test/java/.../valueobject/`)
-   - Testa validações de domínio
-   - CPF/CNPJ, Placas, Valores Monetários
-
-### Cobertura de Código
-
-- **Target:** 80% de cobertura
-- **Plugin:** JaCoCo
-- Verificação automática no build
-
----
-
-## 🏗️ Arquitetura
-
-O projeto segue princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**.
-
-### Camadas da Aplicação
-
-```
-┌─────────────────────────────────────┐
-│         Controller Layer            │  ← REST Controllers
-│  (API Endpoints, DTOs, Validation)  │
-└───────────────┬─────────────────────┘
-                │
-┌───────────────▼─────────────────────┐
-│          Service Layer              │  ← Business Logic
-│   (Use Cases, Domain Services)      │
-└───────────────┬─────────────────────┘
-                │
-┌───────────────▼─────────────────────┐
-│          Domain Layer               │  ← Domain Models
-│  (Entities, Value Objects, Rules)   │
-└───────────────┬─────────────────────┘
-                │
-┌───────────────▼─────────────────────┐
-│       Repository Layer              │  ← Data Access
-│   (JPA Repositories, Database)      │
-└─────────────────────────────────────┘
-```
-
-### Value Objects
-
-O projeto utiliza **Value Objects** para garantir validação e integridade:
-
-- **CpfCnpj** - Validação de CPF e CNPJ com algoritmo oficial
-- **Placa** - Validação de placas (formato antigo e Mercosul)
-- **ValorMonetario** - Representação segura de valores monetários
-- **Contato** - Validação de email
-- **AnoVeiculo** - Validação de ano de veículo
-
-### Documentação Detalhada
-
-- **[ARQUITETURA.md](ARQUITETURA.md)** - Arquitetura completa do sistema
-- **[ESCALABILIDADE_ANALISE.md](ESCALABILIDADE_ANALISE.md)** - Análise de escalabilidade
-
----
-
-## 📁 Estrutura do Projeto
-
-```
-tech-challenge/
-├── src/
-│   ├── main/
-│   │   ├── java/com/techchallenge/
-│   │   │   ├── config/              # Configurações (OpenAPI)
-│   │   │   ├── controller/          # Camada de controle (REST)
-│   │   │   ├── domain/
-│   │   │   │   ├── dto/             # Data Transfer Objects
-│   │   │   │   ├── exception/       # Exceções customizadas
-│   │   │   │   ├── model/           # Entidades JPA
-│   │   │   │   ├── repository/      # Repositórios JPA
-│   │   │   │   ├── service/         # Lógica de negócio
-│   │   │   │   ├── usecase/         # Casos de uso
-│   │   │   │   └── valueobject/     # Value Objects (DDD)
-│   │   │   ├── security/            # Segurança JWT
-│   │   │   └── TechChallengeApplication.java
-│   │   └── resources/
-│   │       ├── application.yml      # Configurações
-│   │       └── scripts/             # Scripts SQL
-│   └── test/
-│       ├── java/com/techchallenge/
-│       │   ├── application/         # Testes de use cases
-│       │   ├── domain/              # Testes de value objects
-│       │   ├── service/             # Testes unitários de serviços
-│       │   ├── integration/         # Testes de integração
-│       │   └── config/              # Configurações de teste
-│       └── resources/
-│           └── application-test.yml # Config de testes (H2)
-├── infra/
-│   └── aws/                         # Terraform para AWS EKS
-│       ├── main.tf                  # Configuração principal
-│       ├── vpc.tf                   # Rede VPC
-│       ├── eks.tf                   # Cluster Kubernetes
-│       ├── rds.tf                   # Banco de dados PostgreSQL
-│       └── README.md                # Documentação Terraform
-├── k8s/                             # Manifests Kubernetes
-│   ├── app-deployment.yaml          # Deployment da aplicação
-│   ├── app-service.yaml             # Service (LoadBalancer)
-│   ├── hpa.yaml                     # Horizontal Pod Autoscaler
-│   ├── configmap.yaml               # Configurações
-│   ├── secret.yaml                  # Credenciais
-│   ├── postgres-*.yaml              # PostgreSQL
-│   └── README.md                    # Documentação K8s
-├── scripts/                         # Scripts úteis
-│   ├── check-deployment.sh          # Verificar deployment
-│   ├── setup-cicd.sh               # Setup CI/CD
-│   └── payloads/                    # Exemplos de payloads
-├── Dockerfile                       # Imagem Docker
-├── docker-compose.yml               # Orquestração local
-├── pom.xml                          # Dependências Maven
-└── README.md                        # Este arquivo
-```
-
----
-
-## 🎯 Fluxo de Uso Típico
-
-### 1. Autenticação
-```bash
-POST /api/auth/login
-Body: {"username": "admin", "password": "admin"}
-```
-
-### 2. Cadastrar Cliente
-```bash
-POST /api/clientes
-Header: Authorization: Bearer TOKEN
-Body: {
-  "nome": "João Silva",
-  "cpfCnpj": "12345678901",
-  "contato": "joao@email.com"
-}
-```
-
-### 3. Cadastrar Peças e Serviços
-```bash
-POST /api/pecas-insumos
-POST /api/servicos
-```
-
-### 4. Criar Ordem de Serviço
-```bash
-POST /api/ordens-servico
-Body: {
-  "cpfCnpjCliente": "12345678901",
-  "veiculo": {...},
-  "servicos": [...],
-  "pecas": [...]
-}
-```
-
-### 5. Cliente Consulta Status (Público)
-```bash
-GET /api/ordens-servico/status/1?cpfCnpj=12345678901
-# Não precisa de token JWT!
-```
-
-### 6. Aprovar/Recusar Orçamento
-```bash
-POST /api/ordens-servico/1/aprovar-orcamento
-Body: {
-  "aprovado": true,
-  "motivoRecusa": null
-}
-```
-
-### 7. Gerenciar Status da OS
-```bash
-PATCH /api/ordens-servico/1/status
-Body: {
-  "novoStatus": "EM_EXECUCAO",
-  "observacao": "Iniciando reparos"
-}
-```
-
----
-
-## 📊 Endpoints Principais
+## Endpoints — OS Service
 
 | Método | Endpoint | Descrição | Auth |
-|--------|----------|-----------|------|
-| **Autenticação** |
+|---|---|---|---|
 | POST | `/api/auth/login` | Login (obter JWT) | ❌ |
-| **Clientes** |
-| GET | `/api/clientes` | Listar clientes | ✅ |
-| POST | `/api/clientes` | Criar cliente | ✅ |
-| GET | `/api/clientes/{id}` | Buscar por ID | ✅ |
-| PUT | `/api/clientes/{id}` | Atualizar | ✅ |
-| DELETE | `/api/clientes/{id}` | Deletar | ✅ |
-| **Veículos** |
-| GET | `/api/veiculos` | Listar veículos | ✅ |
-| POST | `/api/veiculos` | Criar veículo | ✅ |
-| GET | `/api/veiculos/{id}` | Buscar por ID | ✅ |
-| PUT | `/api/veiculos/{id}` | Atualizar | ✅ |
-| DELETE | `/api/veiculos/{id}` | Deletar | ✅ |
-| **Peças** |
-| GET | `/api/pecas-insumos` | Listar peças | ✅ |
-| POST | `/api/pecas-insumos` | Criar peça | ✅ |
-| GET | `/api/pecas-insumos/{id}` | Buscar por ID | ✅ |
-| PUT | `/api/pecas-insumos/{id}` | Atualizar | ✅ |
-| DELETE | `/api/pecas-insumos/{id}` | Deletar | ✅ |
-| PATCH | `/api/pecas-insumos/{id}/estoque` | Ajustar estoque | ✅ |
-| **Serviços** |
-| GET | `/api/servicos` | Listar serviços | ✅ |
-| POST | `/api/servicos` | Criar serviço | ✅ |
-| GET | `/api/servicos/{id}` | Buscar por ID | ✅ |
-| PUT | `/api/servicos/{id}` | Atualizar | ✅ |
-| DELETE | `/api/servicos/{id}` | Deletar | ✅ |
-| **Ordens de Serviço** |
-| POST | `/api/ordens-servico` | Criar OS | ✅ |
-| GET | `/api/ordens-servico` | Listar OSs | ✅ |
-| GET | `/api/ordens-servico/{id}` | Buscar por ID | ✅ |
-| PATCH | `/api/ordens-servico/{id}/status` | Alterar status | ✅ |
-| POST | `/api/ordens-servico/{id}/aprovar-orcamento` | Aprovar/recusar orçamento | ✅ |
-| GET | `/api/ordens-servico/em-andamento` | Listar OSs ordenadas | ✅ |
-| GET | `/api/ordens-servico/status/{id}` | Consulta pública | ❌ |
-| GET | `/api/ordens-servico/monitoramento/tempo-medio` | Estatísticas | ✅ |
+| POST | `/api/ordens-servico` | Criar OS — publica `os.criada` | ✅ |
+| GET  | `/api/ordens-servico` | Listar OSs | ✅ |
+| GET  | `/api/ordens-servico/{id}` | Buscar por ID | ✅ |
+| PATCH | `/api/ordens-servico/{id}/status` | Atualizar status manualmente | ✅ |
+| POST | `/api/ordens-servico/{id}/aprovar-orcamento` | Aprovar/recusar orçamento (legado, hoje feito via Billing) | ✅ |
+| GET | `/api/ordens-servico/em-andamento` | Listar OSs em andamento | ✅ |
+| GET | `/api/ordens-servico/status/{id}?cpfCnpj=...` | Consulta pública por CPF/CNPJ | ❌ |
+| GET | `/api/ordens-servico/monitoramento/tempo-medio` | Estatísticas de tempo médio | ✅ |
 
-**Legenda:** ✅ Requer JWT | ❌ Público
+**Swagger:** `http://<host>:8080/swagger-ui.html` · **OpenAPI JSON:** `/v3/api-docs`
 
 ---
 
-## 🐛 Troubleshooting
+## Como Rodar Localmente (todos os serviços + RabbitMQ)
 
-### Problema: Porta 8080 já em uso
 ```bash
-# Mude a porta no docker-compose.yml:
-ports:
-  - "8081:8080"  # Host:Container
+# Sobe Postgres OS + Postgres Billing + MongoDB + RabbitMQ + OS Service
+docker-compose up -d
+
+# Acompanhe os logs
+docker-compose logs -f os-service
 ```
 
-### Problema: Erro de conexão com banco
+URLs locais:
+
+- OS Service:        http://localhost:8080/swagger-ui.html
+- RabbitMQ UI:       http://localhost:15672 (guest/guest)
+- Billing Service:   http://localhost:8081/swagger-ui.html *(rodar do repo dedicado)*
+- Execution Service: http://localhost:8082/swagger-ui.html *(rodar do repo dedicado)*
+
+---
+
+## Testes e Qualidade
+
+| Categoria | Ferramenta | Status |
+|---|---|---|
+| Unitários | JUnit 5 + Mockito | ✅ 120+ testes |
+| BDD | Cucumber 7 (6 cenários cobrindo Saga + rollback) | ✅ [`ordem_servico.feature`](src/test/resources/features/ordem_servico.feature) |
+| Integração | Testcontainers (PostgreSQL) + Spring Boot Test | ✅ |
+| Cobertura | JaCoCo — **gate de 80% (BUNDLE/LINE)** | ✅ Veja [`pom.xml`](pom.xml) |
+| Quality Gate | **SonarCloud** — `VitorVieira12_Tech-Challenge` | ✅ Roda no CI a cada push em `fase-4`/`main` |
+
+### Rodar testes
+
 ```bash
-# Verifique se o PostgreSQL está rodando:
-docker-compose ps
-
-# Veja logs do banco:
-docker-compose logs postgres
-
-# Reinicie os containers:
-docker-compose restart
+./mvnw verify        # roda surefire + failsafe + jacoco check + report
+./mvnw test          # apenas unitários
 ```
 
-### Problema: Testes falhando
-```bash
-# Certifique-se que o Docker está rodando (para Testcontainers)
-docker info
+Relatório HTML: `target/site/jacoco/index.html`
 
-# Execute testes individualmente:
-./mvnw test -Dtest=AuthControllerIntegrationTest
+### Estratégia de cobertura
+
+O `jacoco-check` mede a **lógica de domínio** (services, usecases, value objects, modelos, consumers de mensageria). Estão excluídos do gate:
+
+- **Camadas de borda:** controllers, security, config — cobertos por testes de integração.
+- **DTOs e exception handlers REST:** Lombok-generated / framework-integration.
+- **Publishers / configurações AMQP:** integração de infraestrutura validada localmente.
+- **Resíduos da refatoração Clean Architecture:** `core/**`, `adapters/**`, `infrastructure/**` (mantidos por compatibilidade, não exercitados).
+
+---
+
+## CI/CD
+
+Pipeline em [`.github/workflows/ci-cd-os-service.yml`](.github/workflows/ci-cd-os-service.yml) com 3 estágios:
+
+```mermaid
+graph LR
+    A[Push / PR fase-4·main] --> B[Build & Test<br/>mvn verify<br/>JaCoCo ≥ 80%<br/>SonarCloud]
+    B --> C[Docker Build<br/>& Push Hub]
+    C --> D[Deploy EKS<br/>kubectl apply]
 ```
 
-### Problema: Token JWT inválido
-- Verifique se o token não expirou (24 horas)
-- Faça login novamente para obter novo token
-- Certifique-se de usar `Bearer TOKEN` no header
+**Secrets necessárias no repositório:**
+`DOCKER_USERNAME`, `DOCKER_PASSWORD`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `SONAR_TOKEN`, `SONAR_HOST_URL`.
 
-### Problema: Build falha no Maven
-```bash
-# Limpe o cache do Maven
-./mvnw clean
-
-# Rebuild completo
-./mvnw clean install
-```
+Branch `main` protegida — exige PR + checks verdes.
 
 ---
 
-## 📖 Documentação Adicional
+## Kubernetes
 
-### Documentação Principal
-- **[API_DOCUMENTATION.md](API_DOCUMENTATION.md)** - Referência completa da API
-- **[ARQUITETURA.md](ARQUITETURA.md)** - Arquitetura detalhada do sistema
-- **[ESCALABILIDADE_ANALISE.md](ESCALABILIDADE_ANALISE.md)** - Análise de escalabilidade
+Manifests em [`k8s/`](k8s/):
 
-### Infraestrutura
-- **[infra/aws/README.md](infra/aws/README.md)** - Terraform AWS EKS
-- **[k8s/README.md](k8s/README.md)** - Kubernetes manifests
+- [`os-service.yml`](k8s/os-service.yml) — Namespace + ConfigMap + Deployment + Service (LoadBalancer)
+- [`billing-service.yml`](k8s/billing-service.yml) — espelho para o Billing Service
+- [`execution-service.yml`](k8s/execution-service.yml) — espelho para o Execution Service
+- [`rabbitmq.yml`](k8s/rabbitmq.yml) — broker compartilhado
+- [`seed-data.sql`](k8s/seed-data.sql) — dados de demonstração
 
-### Exemplos
-- **[API_EXAMPLES.http](API_EXAMPLES.http)** - Exemplos práticos de requisições
+Secrets dos bancos / RabbitMQ / Mercado Pago são gerenciados via `kubectl create secret` (script em [`k8s/setup-secrets.sh`](k8s/setup-secrets.sh)).
 
 ---
 
-## 🤝 Contribuindo
+## Observabilidade
 
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+**New Relic** (herdado da Fase 3) — distributed tracing através dos 3 microsserviços e do RabbitMQ.
 
----
-
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+- App name: `Tech Challenge - Oficina` (e os 2 análogos)
+- Agent jar: `newrelic.yml` carregado via Dockerfile
+- Dashboard pronto: [`docs/newrelic-dashboard.json`](docs/newrelic-dashboard.json)
 
 ---
 
-## 👥 Autores
+## Entregáveis da Fase 4
 
-**Tech Challenge Team**
-
-- Desenvolvido como projeto acadêmico
-- Implementa boas práticas de desenvolvimento
-- Arquitetura escalável e moderna
-
----
-
-## 🔗 Links Úteis
-
-### 🌐 Deploy em Produção (AWS)
-- **API Base URL:** http://a8ee8070f02404420b7817f981e33463-d5a383da039125b0.elb.us-east-1.amazonaws.com
-- **Swagger UI (Produção):** http://a8ee8070f02404420b7817f981e33463-d5a383da039125b0.elb.us-east-1.amazonaws.com/swagger-ui.html
-- **OpenAPI Docs (Produção):** http://a8ee8070f02404420b7817f981e33463-d5a383da039125b0.elb.us-east-1.amazonaws.com/v3/api-docs
-- **Health Check:** http://a8ee8070f02404420b7817f981e33463-d5a383da039125b0.elb.us-east-1.amazonaws.com/actuator/health
-
-### 🏗️ Repositórios da Fase 3
-- **[tech-challenge-infra-db](https://github.com/VitorVieira12/tech-challenge-infra-db)** — Terraform RDS PostgreSQL
-- **[tech-challenge-infra-k8s](https://github.com/VitorVieira12/tech-challenge-infra-k8s)** — Terraform EKS + Kubernetes
-- **[tech-challenge-lambda](https://github.com/VitorVieira12/tech-challenge-lambda)** — Lambda Autenticação CPF
-
-### 📊 Monitoramento
-- **New Relic Dashboard:** https://one.newrelic.com (App: `Tech Challenge - Oficina`)
-
-### 📚 Documentação
-- **Swagger UI Local:** http://localhost:8080/swagger-ui.html
-- **OpenAPI Docs Local:** http://localhost:8080/v3/api-docs
-- **Spring Boot:** https://spring.io/projects/spring-boot
-- **Kubernetes:** https://kubernetes.io/
-- **Terraform:** https://www.terraform.io/
+| Item | Status | Onde |
+|---|---|---|
+| 3 microsserviços em repos separados | ✅ | Tabela no topo |
+| Banco SQL + NoSQL | ✅ | PostgreSQL + MongoDB |
+| Comunicação assíncrona via RabbitMQ | ✅ | `messaging/` |
+| Saga Pattern coreografado + rollback | ✅ | `docs/ARQUITETURA_FASE4.md` §4 |
+| Testes unitários nos 3 serviços | ✅ | `src/test/` em cada repo |
+| BDD com fluxo completo | ✅ | `ordem_servico.feature` (6 cenários) |
+| Cobertura ≥ 80% por serviço | ✅ | JaCoCo gate ativo nos 3 |
+| Quality Gate (SonarCloud) | ✅ | Roda no CI |
+| CI/CD por serviço com deploy em K8s | ✅ | `.github/workflows/` |
+| Dockerfile + manifests K8s por serviço | ✅ | `Dockerfile` + `k8s/` |
+| Swagger por serviço | ✅ | `/swagger-ui.html` |
+| Observabilidade | ✅ | New Relic distributed tracing |
+| Diagramas da arquitetura final | ✅ | `docs/ARQUITETURA_FASE4.md` |
 
 ---
 
-## 🏗️ Arquitetura Fase 3 — Visão Geral
+## Colaborador avaliador
 
-```
-                        ┌─────────────────────────────────┐
-                        │           AWS us-east-1          │
-                        │                                 │
-  Cliente               │  ┌──────────────────────────┐  │
-  (CPF/CNPJ) ─────────▶│  │      API Gateway          │  │
-                        │  │   (HTTP API v2)           │  │
-                        │  └────────────┬─────────────┘  │
-                        │               │                 │
-                        │    ┌──────────▼──────────┐     │
-                        │    │   Lambda (Auth)      │     │
-                        │    │   AuthHandler.java   │     │
-                        │    │   → Valida CPF       │     │
-                        │    │   → Gera JWT Token   │     │
-                        │    └──────────┬──────────┘     │
-                        │               │                 │
-  JWT Token ◀────────── │  ─────────────┘                 │
-                        │                                 │
-  API Requests          │  ┌──────────────────────────┐  │
-  (com JWT) ──────────▶ │  │  EKS Cluster (t3.small)  │  │
-                        │  │  ┌────────────────────┐   │  │
-                        │  │  │  Spring Boot App    │   │  │
-                        │  │  │  + New Relic Agent  │   │  │
-                        │  │  │  + HPA (auto-scale) │   │  │
-                        │  │  └────────────────────┘   │  │
-                        │  └──────────────┬─────────────┘  │
-                        │                 │                 │
-                        │  ┌──────────────▼─────────────┐  │
-                        │  │      RDS PostgreSQL 15      │  │
-                        │  │    tech-challenge-db        │  │
-                        │  └────────────────────────────┘  │
-                        │                                 │
-                        │  ┌──────────────────────────┐  │
-                        │  │  New Relic               │  │
-                        │  │  (Monitoramento)         │  │
-                        │  └──────────────────────────┘  │
-                        └─────────────────────────────────┘
-```
-
-## 🤝 Colaborador avaliador
-
-- **soat-architecture** — adicionado como colaborador para avaliação
+- **soat-architecture** — adicionado como colaborador para avaliação nos 3 repositórios.
 
 ---
 
-**Desenvolvido com ❤️ usando Spring Boot 3, Java 21, AWS EKS, Lambda e Terraform**
+## Documentação adicional
+
+- [`docs/ARQUITETURA_FASE4.md`](docs/ARQUITETURA_FASE4.md) — arquitetura completa
+- [`docs/ARQUITETURA_FASE3.md`](docs/ARQUITETURA_FASE3.md) — base herdada (Lambda, EKS, RDS)
+- [`docs/ADR.md`](docs/ADR.md) — Architecture Decision Records
+- [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md) — referência completa da API
+- [`API_EXAMPLES.http`](API_EXAMPLES.http) — exemplos REST Client
