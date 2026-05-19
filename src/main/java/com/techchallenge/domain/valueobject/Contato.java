@@ -3,6 +3,8 @@ package com.techchallenge.domain.valueobject;
 import com.techchallenge.domain.exception.DomainValidationException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,6 +35,7 @@ public class Contato implements Serializable {
     @Column(name = "contato", nullable = false)
     private String valor;
     
+    @Enumerated(EnumType.STRING)
     @Column(name = "tipo_contato")
     private TipoContato tipo;
     
