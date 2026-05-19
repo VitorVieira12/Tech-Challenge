@@ -12,6 +12,7 @@ data:
   SPRING_PROFILES_ACTIVE: "prod"
   SERVER_PORT: "8080"
   RABBITMQ_PORT: "5672"
+  MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -75,6 +76,11 @@ spec:
                 configMapKeyRef:
                   name: os-service-config
                   key: SPRING_PROFILES_ACTIVE
+            - name: MANAGEMENT_HEALTH_MAIL_ENABLED
+              valueFrom:
+                configMapKeyRef:
+                  name: os-service-config
+                  key: MANAGEMENT_HEALTH_MAIL_ENABLED
           resources:
             requests:
               memory: "128Mi"
