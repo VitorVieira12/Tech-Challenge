@@ -1,21 +1,13 @@
 # 🏗️ Infraestrutura como Código - Terraform
 
-Este diretório contém scripts Terraform para provisionar automaticamente a infraestrutura necessária para o Tech Challenge em diferentes provedores de cloud.
+Este diretório contém scripts Terraform alternativos (Azure/GCP) para referência.
+
+> **Produção AWS (Fase 3/4):** use os repositórios dedicados [`tech-challenge-infra-db`](https://github.com/VitorVieira12/tech-challenge-infra-db) e [`tech-challenge-infra-k8s`](https://github.com/VitorVieira12/tech-challenge-infra-k8s). O Terraform monolítico AWS que existia em `infra/aws/` foi arquivado em [`docs/legacy-fase3/infra-aws/`](../docs/legacy-fase3/infra-aws/).
 
 ## 📁 Estrutura
 
 ```
 infra/
-├── aws/                    # AWS (EKS + RDS PostgreSQL)
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── provider.tf
-│   ├── outputs.tf
-│   ├── vpc.tf
-│   ├── eks.tf
-│   ├── rds.tf
-│   └── terraform.tfvars.example
-│
 ├── azure/                  # Azure (AKS + Azure Database for PostgreSQL)
 │   ├── main.tf
 │   ├── variables.tf

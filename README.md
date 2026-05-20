@@ -308,5 +308,6 @@ Secrets dos bancos / RabbitMQ / Mercado Pago são gerenciados via `kubectl creat
 - [`docs/ARQUITETURA_FASE4.md`](docs/ARQUITETURA_FASE4.md) — arquitetura completa
 - [`docs/ARQUITETURA_FASE3.md`](docs/ARQUITETURA_FASE3.md) — base herdada (Lambda, EKS, RDS)
 - [`docs/ADR.md`](docs/ADR.md) — Architecture Decision Records
+- [`docs/legacy-fase3/`](docs/legacy-fase3/) — documentação histórica das Fases 2 e 3
 - [`API_DOCUMENTATION.md`](API_DOCUMENTATION.md) — referência completa da API
 - [`API_EXAMPLES.http`](API_EXAMPLES.http) — exemplos REST Client

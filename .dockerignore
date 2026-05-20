@@ -12,7 +12,7 @@ RESUMO_*.md
 TRABALHO_*.md
 ESCLARECIMENTO_*.md
 IMPLEMENTACAO_*.md
-ARQUITETURA.md
+docs/legacy-fase3/
 
 # IDE
 .idea/
