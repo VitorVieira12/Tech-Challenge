@@ -32,6 +32,9 @@ build/
 ### VS Code ###
 .vscode/
 
+### Clones locais de outros repositórios (não versionar) ###
+repos/
+
 ### Secrets e Arquivos Sensíveis ###
 MEUS_SECRETS.txt
 *_SECRETS.txt
